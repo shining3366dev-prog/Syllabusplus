@@ -57,7 +57,7 @@ body {
 
 /* --- HERO SECTION --- */
 .hero {
-    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/EIGT-above-768x392.jpg');
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/EIGT_Above-thumbnail.png');
     background-size: cover;
     background-position: center;
     height: 80vh; /* 80% of viewport height */
