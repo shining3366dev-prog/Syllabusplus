@@ -1,15 +1,3 @@
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-const auth = getAuth();
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // Run your existing load function
-        loadSubjects(); 
-    } else {
-        // Show a "Please Login" message instead of the files
-        document.getElementById('subject-grid').innerHTML = "<h2>Please Login to View Files</h2>";
-    }
-});
 function getSubjectFromURL() {
     const params = new URLSearchParams(window.location.search);
     return params.get('subject');
