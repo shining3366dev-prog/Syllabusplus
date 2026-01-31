@@ -7,7 +7,7 @@ const headerHTML = `
             <a href="index.html#subjects">Subjects</a>
             <a href="#about">About Us</a>
             <a href="#contact">Contact</a>
-            <a href="#login" class="btn-login">Login</a>
+            <a href="#" class="btn-login" onclick="loginGoogle()">Login</a>
         </nav>
     </header>
 `;
