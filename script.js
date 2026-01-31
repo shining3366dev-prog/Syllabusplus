@@ -46,7 +46,7 @@ function loadSubjects() {
                     // 4. Button Logic (Fixed Syntax)
                     // We calculate the link HTML *before* putting it into the card string
                     const linkHTML = isAvailable 
-                        ? `<a href="files.html?subject=${title}" style="text-decoration:none;">
+                        ? `<a href="./files.html?subject=${title}" style="text-decoration:none;">
                              <button style="cursor:pointer;">${buttonText}</button>
                            </a>`
                         : `<button disabled>${buttonText}</button>`;
