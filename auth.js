@@ -1,17 +1,24 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Use the config keys from your Firebase Console screenshot
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCbCffbTCQ1yjxR2tfcjpts9E7KUgFFy4o",
+  apiKey: "AIzaSyCbCffbTCQ1yjxR2tfcjpts9E7kUgFfY4o",
   authDomain: "syllabusplus-c30cd.firebaseapp.com",
   projectId: "syllabusplus-c30cd",
   storageBucket: "syllabusplus-c30cd.firebasestorage.app",
   messagingSenderId: "578784187280",
-  appId: "1:578784187280:web:efe41016190f1e447f9915"
+  appId: "1:578784187280:web:efe41016190f1e447f9915",
+  measurementId: "G-FW946RJR52"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
