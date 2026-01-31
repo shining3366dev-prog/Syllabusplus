@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syllabus+ - File Browser</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .file-browser {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1rem;
+        }
+        .file-list { list-style: none; }
+        .file-item {
+            display: flex; align-items: center; padding: 15px;
+            border-bottom: 1px solid #eee; transition: background 0.2s;
+        }
+        .file-item:hover { background-color: #f9f9f9; }
+        .file-icon { margin-right: 15px; font-size: 1.5rem; color: #e74c3c; }
+        .file-link { text-decoration: none; color: #333; font-weight: 500; flex-grow: 1; }
+        .file-link:hover { color: #3498db; }
+        .btn-back { text-decoration: none; color: #555; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <section class="container">
+            <div class="file-browser">
+                <div class="file-header">
+                    <h2 id="subject-title">Loading...</h2>
+                    <a href="index.html" class="btn-back">← Back to Subjects</a>
+                </div>
+                <ul class="file-list" id="file-list">
+                    <p>Loading files...</p>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <script src="layout.js"></script>
+    <script src="files.js"></script>
+
+</body>
+</html>

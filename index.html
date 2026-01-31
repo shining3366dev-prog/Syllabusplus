@@ -3,41 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syllabus+ - Student Resources</title>
+    <title>Syllabus+ - Home</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="header">
-        <div class="logo">Syllabus+</div>
-        <nav class="navbar">
-            <a href="#" class="active">Home</a>
-            <a href="#subjects">Subjects</a>
-            <a href="#about">About Us</a>
-            <a href="#contact">Contact</a>
-            <a href="#login" class="btn-login">Login</a>
-        </nav>
-    </header>
+    <div class="main-content">
+        
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Student Resource Center</h1>
+                <p>Access study guides, worksheets, and past papers for all your school subjects.</p>
+                <a href="#subjects" class="cta-button">Find Your Subject</a>
+            </div>
+        </section>
 
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Student Resource Center</h1>
-            <p>Access study guides, worksheets, and past papers for all your school subjects.</p>
-            <a href="#subjects" class="cta-button">Find Your Subject</a>
-        </div>
-    </section>
+        <section id="subjects" class="container">
+            <h2 class="section-title">Browse by Subject</h2>
+            <div class="course-grid" id="subject-grid">
+                <p>Loading subjects...</p>
+            </div>
+        </section>
 
-    <section id="subjects" class="container">
-        <h2 class="section-title">Browse by Subject</h2>
-        <div class="course-grid" id="subject-grid">
-            <p>Loading subjects...</p>
-        </div>
-    </section>
-
-    <footer>
-        <p>&copy; 2026 EIGT PLUS. All rights reserved.</p>
-    </footer>
-
+    </div> <script src="layout.js"></script>
     <script src="script.js"></script>
 
 </body>

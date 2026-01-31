@@ -33,24 +33,25 @@ function loadSubjects() {
                     const disabledClass = isAvailable ? '' : 'disabled';
                     const buttonText = isAvailable ? 'View Files' : 'Unavailable';
                     
-                    // 3. Background Logic (UPDATED)
+                    // 3. Background Logic
                     let backgroundStyle = '';
-
-                    // Rule 1: If an image exists, ALWAYS use it (even if unavailable)
-                    // The CSS .disabled class will handle turning it gray.
                     if (imageFile && imageFile.length > 0) {
                         backgroundStyle = `background-image: url('images/${imageFile}');`;
-                    } 
-                    // Rule 2: If no image, but available, use the custom color
-                    else if (isAvailable) {
+                    } else if (isAvailable) {
                         backgroundStyle = `background-color: ${bgColor || '#3498db'};`;
-                    } 
-                    // Rule 3: If no image and unavailable, use generic gray
-                    else {
+                    } else {
                         backgroundStyle = `background-color: #95a5a6;`;
                     }
 
-                    // 4. Build the HTML Card
+                    // 4. Button Logic (Fixed Syntax)
+                    // We calculate the link HTML *before* putting it into the card string
+                    const linkHTML = isAvailable 
+                        ? `<a href="files.html?subject=${title}" style="text-decoration:none;">
+                             <button style="cursor:pointer;">${buttonText}</button>
+                           </a>`
+                        : `<button disabled>${buttonText}</button>`;
+
+                    // 5. Build the HTML Card
                     const card = document.createElement('div');
                     card.className = `course-card ${disabledClass}`;
 
@@ -59,7 +60,7 @@ function loadSubjects() {
                         <div class="card-text">
                             <h3>${title}</h3>
                             <p>${displayDescription}</p>
-                            <button ${!isAvailable ? 'disabled' : ''}>${buttonText}</button>
+                            ${linkHTML}
                         </div>
                     `;
 
