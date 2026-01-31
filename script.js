@@ -1,6 +1,6 @@
 // Function to load and parse the CSV data
 function loadSubjects() {
-    fetch('course-card-widgets.csv')
+    fetch('./course-card-widgets.csv')
         .then(response => {
             if (!response.ok) throw new Error("File not found (404)");
             return response.text();

@@ -16,7 +16,7 @@ function loadFiles() {
 
     titleElement.innerText = currentSubject + " Resources";
 
-    fetch('subject-files.csv')
+    fetch('./subject-files.csv')
         .then(response => {
             if (!response.ok) throw new Error("CSV not found");
             return response.text();
