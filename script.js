@@ -35,36 +35,39 @@ function loadSubjects() {
 }
 
 // 2. Render the Grid based on Year Filter
+
 function renderGrid(selectedYear) {
     const grid = document.getElementById('subject-grid');
+    if (!grid) return; // Stop if we are not on the index page
+
     grid.innerHTML = '';
 
     allSubjects.forEach(subject => {
-        // FILTER LOGIC:
-        // If "ALL" is selected, show everything.
-        // If specific year (e.g., "S4") is selected, check if subject.years includes it.
+        // FILTER LOGIC: Check if "ALL" is selected OR if the subject's years include the selection
         const shouldShow = selectedYear === "ALL" || subject.years.includes(selectedYear);
 
         if (shouldShow && subject.title) {
+            // 1. Text Logic
             const displayDesc = subject.isAvailable ? (subject.desc || 'Resources Available') : 'Not Available';
             const disabledClass = subject.isAvailable ? '' : 'disabled';
             const buttonText = subject.isAvailable ? 'View Files' : 'Unavailable';
 
+            // 2. Background Logic
             let backgroundStyle = '';
-            // If local, use relative path. If live, use raw github path for images? 
-            // For now assuming images are in the same repo as index.html (standard setup)
             if (subject.image) {
                 backgroundStyle = `background-image: url('images/${subject.image}');`;
             } else {
                 backgroundStyle = `background-color: ${subject.bgColor || '#3498db'};`;
             }
 
+            // 3. Button Logic
             const linkHTML = subject.isAvailable 
                 ? `<a href="./files.html?subject=${subject.title}">
                      <button>${buttonText}</button>
                    </a>`
                 : `<button disabled>${buttonText}</button>`;
 
+            // 4. Build the HTML Card
             const card = document.createElement('div');
             card.className = `course-card ${disabledClass}`;
             card.innerHTML = `
