@@ -66,11 +66,13 @@ function loadSubjects() {
 // 2. Render the Grid (THE PART THAT WAS MISSING)
 function renderGrid(selectedYear) {
     const grid = document.getElementById('subject-grid');
-    if (!grid) return; // Stop if we are not on the index page
+    if (!grid) return; 
 
-    grid.innerHTML = ''; // Clear existing content
+    grid.innerHTML = ''; 
 
-    // Filter Logic
+    // POINT THIS TO YOUR DATABASE REPO IMAGES
+    const IMAGES_BASE_URL = 'https://raw.githubusercontent.com/shining3366dev-prog/Syllabusplus-Database/main/images/';
+
     const filteredSubjects = allSubjects.filter(subject => {
         return selectedYear === "ALL" || subject.years.includes(selectedYear);
     });
@@ -82,28 +84,25 @@ function renderGrid(selectedYear) {
 
     filteredSubjects.forEach(subject => {
         if (subject.title) {
-            // A. Text Logic
             const displayDesc = subject.isAvailable ? (subject.desc || 'Resources Available') : 'Not Available';
             const disabledClass = subject.isAvailable ? '' : 'disabled';
             const buttonText = subject.isAvailable ? 'View Files' : 'Unavailable';
 
-            // B. Background Logic
             let backgroundStyle = '';
-            // Note: This assumes images are in an 'images' folder relative to index.html
+
+            // NEW LOGIC: Use the GitHub URL
             if (subject.image && subject.image.length > 0) {
-                backgroundStyle = `background-image: url('images/${subject.image}');`;
+                backgroundStyle = `background-image: url('${IMAGES_BASE_URL}${subject.image}');`;
             } else {
                 backgroundStyle = `background-color: ${subject.bgColor || '#3498db'};`;
             }
 
-            // C. Button Link Logic
             const linkHTML = subject.isAvailable 
                 ? `<a href="./files.html?subject=${subject.title}">
                         <button>${buttonText}</button>
                     </a>`
                 : `<button disabled>${buttonText}</button>`;
 
-            // D. Create HTML Elements
             const card = document.createElement('div');
             card.className = `course-card ${disabledClass}`;
             card.innerHTML = `
