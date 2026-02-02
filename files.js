@@ -107,7 +107,7 @@ function renderStructure(structure) {
         }
     }
 
-    // Render FILES as
+    // Render FILES
     if (structure['__FILES__']) {
         structure['__FILES__'].forEach(file => {
             html += `
