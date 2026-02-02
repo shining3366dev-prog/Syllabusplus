@@ -1,44 +1,38 @@
-// Function to get query params
+// Helper: Get Subject from URL
 function getSubjectFromURL() {
     const params = new URLSearchParams(window.location.search);
     return params.get('subject');
 }
 
-// 1. Preview Logic
+// 1. Click Handler (Updates the Preview Pane)
 window.previewFile = function(url, element) {
     const viewer = document.getElementById('pdf-viewer');
     const emptyState = document.getElementById('empty-state');
     
-    // Hide empty state, show viewer
+    // Switch view
     emptyState.style.display = 'none';
     viewer.classList.remove('hidden');
-    
-    // Load the URL
     viewer.src = url;
 
-    // Remove 'active' class from all other files
+    // Update Active Styling in Sidebar
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-    
-    // Add 'active' class to clicked element
-    if (element) {
-        element.classList.add('active');
-    }
+    if (element) element.classList.add('active');
 }
 
-// 2. Load Logic
+// 2. Fetch & Render Logic
 function loadFiles() {
     const currentSubject = getSubjectFromURL();
     const titleElement = document.getElementById('subject-title');
     const treeContainer = document.getElementById('file-tree');
 
     if (!currentSubject) {
-        titleElement.innerText = "No Subject Selected";
+        titleElement.innerText = "Select a Subject";
         return;
     }
 
     titleElement.innerText = currentSubject;
 
-    // FETCH FROM DATABASE REPO
+    // Use your GitHub Database URL
     const FILES_URL = 'https://raw.githubusercontent.com/shining3366dev-prog/Syllabusplus-Database/main/subject-files.csv';
 
     fetch(FILES_URL)
@@ -56,33 +50,34 @@ function loadFiles() {
                 const displayName = cols[1]?.trim();
                 const fileLink = cols[2]?.trim();
 
+                // Only process files for the Current Subject
                 if (fullPath && fileLink) {
-                    const parts = fullPath.split(/[/\\]/); // Handle / or \
+                    const parts = fullPath.split(/[/\\]/);
                     const rowSubject = parts[0];
 
                     if (rowSubject.toLowerCase() === currentSubject.toLowerCase()) {
                         totalFiles++;
-                        // Build hierarchy: Subject -> Folder -> Subfolder
-                        const folders = parts.slice(1); // Remove subject name from path
+                        const folders = parts.slice(1); // Get folders + filename
                         
+                        // Build nested object
                         let currentLevel = fileStructure;
                         folders.forEach(folder => {
-                            if (!currentLevel[folder]) { currentLevel[folder] = {}; }
+                            if (!currentLevel[folder]) currentLevel[folder] = {};
                             currentLevel = currentLevel[folder];
                         });
 
-                        if (!currentLevel['__FILES__']) { currentLevel['__FILES__'] = []; }
+                        // Store file info
+                        if (!currentLevel['__FILES__']) currentLevel['__FILES__'] = [];
                         currentLevel['__FILES__'].push({ name: displayName, link: fileLink });
                     }
                 }
             });
 
             if (totalFiles === 0) {
-                treeContainer.innerHTML = `<p style="padding:20px;">No files found for ${currentSubject}.</p>`;
+                treeContainer.innerHTML = `<p style="padding:20px; font-style:italic;">No files found.</p>`;
                 return;
             }
 
-            // Render the sidebar
             treeContainer.innerHTML = renderStructure(fileStructure);
         })
         .catch(err => {
@@ -90,18 +85,19 @@ function loadFiles() {
             treeContainer.innerHTML = "<p style='color:red; padding:20px;'>Error loading files.</p>";
         });
 }
-
-// 3. Recursive Render Logic (Updated for Sidebar)
 function renderStructure(structure) {
     let html = '';
     
     // Render FOLDERS
     for (const key in structure) {
         if (key !== '__FILES__') {
+            // Note: We use <i class="folder-icon"></i> without a specific class like fa-folder
+            // The CSS handles switching the icon content based on [open] state
             html += `
                 <details class="folder-details" open>
                     <summary class="folder-summary">
-                        <i class="fa-regular fa-folder folder-icon"></i> ${key}
+                        <i class="folder-icon"></i> 
+                        <span>${key}</span>
                     </summary>
                     <div class="folder-content">
                         ${renderStructure(structure[key])}
@@ -111,10 +107,9 @@ function renderStructure(structure) {
         }
     }
 
-    // Render FILES (Clickable Divs now, not Links)
+    // Render FILES
     if (structure['__FILES__']) {
         structure['__FILES__'].forEach(file => {
-            // Note: We escape the URL string to prevent errors
             html += `
                 <div class="file-item" onclick="previewFile('${file.link}', this)">
                     <i class="fa-regular fa-file-pdf file-icon"></i>
@@ -127,5 +122,4 @@ function renderStructure(structure) {
     return html;
 }
 
-// Run on load
 document.addEventListener('DOMContentLoaded', loadFiles);

@@ -376,149 +376,166 @@ footer {
     /* Remove margin-left because we are using 'gap' in the .navbar now */
     margin-left: 0; 
 }
-/* --- EXPLORER LAYOUT (New Stylish Design) --- */
 
-/* Remove default scroll from body to handle it inside panes */
-.explorer-body {
-    height: 100vh;
-    overflow: hidden;
+
+
+
+/* --- MODERN SPLIT EXPLORER --- */
+
+.explorer-wrapper {
     display: flex;
-    flex-direction: column;
-    background-color: #f8f9fa;
+    /* Height calculation: 100vh - Header(approx 70px) - Footer(approx 80px) */
+    height: calc(100vh - 150px);
+    background-color: #fff;
+    border-top: 1px solid #eee;
 }
 
-/* 1. Slim Header */
-.explorer-header {
-    height: 60px;
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    flex-shrink: 0; /* Prevents header from shrinking */
-    z-index: 10;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.back-home {
-    text-decoration: none;
-    color: #555;
-    font-weight: 600;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.2s;
-}
-
-.back-home:hover { color: #3498db; }
-
-.divider { color: #ccc; font-size: 1.2rem; }
-
-#subject-title {
-    font-size: 1.1rem;
-    color: #2c3e50;
-    margin: 0;
-}
-
-/* 2. The Split Container */
-.explorer-container {
-    display: flex;
-    flex: 1; /* Fills remaining height */
-    overflow: hidden; /* No double scrollbars */
-}
-
-/* 3. Left Sidebar (File Tree) */
-.sidebar {
-    width: 300px;
-    background: #fff;
+/* --- LEFT SIDEBAR DESIGN --- */
+.sidebar-vertical {
+    width: 300px; /* Fixed robust width */
+    background-color: #f8f9fa; /* Light grey background */
     border-right: 1px solid #e0e0e0;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
 }
 
-.sidebar-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    background: #fafafa;
+/* 1. Top Section (Back Button + Title) */
+.sidebar-top {
+    padding: 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    z-index: 2; /* Keeps shadow on top of scroll area */
 }
 
-.sidebar-header h3 {
-    font-size: 0.9rem;
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #636e72;
+    margin-bottom: 15px;
+    transition: color 0.2s;
+}
+
+.btn-back i { margin-right: 8px; font-size: 0.8rem; }
+.btn-back:hover { color: #3498db; }
+
+.sidebar-info h2 {
+    font-size: 1.1rem;
+    color: #2d3436;
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+
+.badge {
+    font-size: 0.75rem;
+    background: #e1f5fe;
+    color: #0288d1;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
     text-transform: uppercase;
-    color: #888;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
-.file-tree {
+/* 2. File Tree Content */
+.file-tree-content {
     flex: 1;
-    overflow-y: auto; /* Independent scrolling */
+    overflow-y: auto;
     padding: 10px 0;
 }
 
-/* Sidebar Items */
-.folder-details { margin-bottom: 0; }
+/* --- FOLDER STRUCTURE (The "Folder Thing") --- */
 
+/* The Container for nested items */
+.folder-content {
+    margin-left: 18px; /* Indentation */
+    padding-left: 8px;
+    /* This creates the vertical guide line */
+    border-left: 1px solid #dcdde1; 
+}
+
+/* Items (Folders and Files) */
 .folder-summary, .file-item {
-    padding: 12px 20px;
+    padding: 8px 15px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: #444;
-    border-left: 3px solid transparent; /* Marker for active state */
+    transition: background 0.1s;
+    user-select: none; /* Prevents text highlighting when clicking fast */
+    border-radius: 0 4px 4px 0; /* Rounded right edges */
+    margin-right: 10px;
 }
 
 .folder-summary:hover, .file-item:hover {
-    background-color: #f1f3f4;
+    background-color: #e3e6ea;
 }
 
+/* Icons */
+.folder-icon { color: #f39c12; margin-right: 8px; width: 20px; text-align: center; }
+.file-icon   { color: #e74c3c; margin-right: 8px; width: 20px; text-align: center; }
+
+/* Active File State */
 .file-item.active {
-    background-color: #e8f0fe;
-    color: #1967d2;
-    border-left-color: #1967d2; /* Blue marker on left */
+    background-color: #dbeeff; /* Light Blue BG */
+    color: #2980b9; /* Blue Text */
     font-weight: 600;
 }
 
-.folder-icon, .file-icon {
-    width: 24px;
-    margin-right: 10px;
-    color: #5f6368;
+/* Details arrow removal (we use custom icons) */
+.folder-summary::-webkit-details-marker { display: none; }
+.folder-summary { list-style: none; }
+
+/* Open/Closed Folder Logic */
+/* When details is CLOSED */
+.folder-details:not([open]) .folder-icon::before {
+    content: "\f07b"; /* fa-folder */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 400; /* Regular */
+}
+/* When details is OPEN */
+.folder-details[open] .folder-icon::before {
+    content: "\f07c"; /* fa-folder-open */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 400;
 }
 
-.file-item.active .file-icon { color: #1967d2; }
-
-/* 4. Right Preview Pane */
-.preview-pane {
-    flex: 1; /* Takes all remaining width */
-    background: #fff;
+/* --- PREVIEW AREA --- */
+.preview-area {
+    flex: 1;
+    background-color: #fff;
     position: relative;
     display: flex;
     flex-direction: column;
 }
 
-.pdf-frame {
-    width: 100%;
-    height: 100%;
-    border: none;
-}
+.pdf-viewer { width: 100%; height: 100%; border: none; }
+.pdf-viewer.hidden { display: none; }
 
-.pdf-frame.hidden { display: none; }
-
-/* Empty State Styling */
 .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #888;
-    background-color: #f8f9fa;
+    color: #b2bec3;
 }
+
+.empty-icon-circle {
+    background: #f1f2f6;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.empty-state i { font-size: 2.5rem; color: #dfe6e9; }
+.empty-state h3 { color: #2d3436; margin-bottom: 5px; }
