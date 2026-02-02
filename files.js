@@ -33,7 +33,7 @@ function loadFiles() {
     titleElement.innerText = currentSubject;
 
     // Use your GitHub Database URL
-    const FILES_URL = 'https://raw.githubusercontent.com/shining3366dev-prog/Syllabusplus-Database/main/subject-files.csv';
+    const FILES_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/subject-files.csv';
 
     fetch(FILES_URL)
         .then(res => res.text())
