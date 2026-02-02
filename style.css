@@ -376,3 +376,149 @@ footer {
     /* Remove margin-left because we are using 'gap' in the .navbar now */
     margin-left: 0; 
 }
+/* --- EXPLORER LAYOUT (New Stylish Design) --- */
+
+/* Remove default scroll from body to handle it inside panes */
+.explorer-body {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+
+/* 1. Slim Header */
+.explorer-header {
+    height: 60px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0; /* Prevents header from shrinking */
+    z-index: 10;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.back-home {
+    text-decoration: none;
+    color: #555;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s;
+}
+
+.back-home:hover { color: #3498db; }
+
+.divider { color: #ccc; font-size: 1.2rem; }
+
+#subject-title {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin: 0;
+}
+
+/* 2. The Split Container */
+.explorer-container {
+    display: flex;
+    flex: 1; /* Fills remaining height */
+    overflow: hidden; /* No double scrollbars */
+}
+
+/* 3. Left Sidebar (File Tree) */
+.sidebar {
+    width: 300px;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+.sidebar-header h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 1px;
+}
+
+.file-tree {
+    flex: 1;
+    overflow-y: auto; /* Independent scrolling */
+    padding: 10px 0;
+}
+
+/* Sidebar Items */
+.folder-details { margin-bottom: 0; }
+
+.folder-summary, .file-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    color: #444;
+    border-left: 3px solid transparent; /* Marker for active state */
+}
+
+.folder-summary:hover, .file-item:hover {
+    background-color: #f1f3f4;
+}
+
+.file-item.active {
+    background-color: #e8f0fe;
+    color: #1967d2;
+    border-left-color: #1967d2; /* Blue marker on left */
+    font-weight: 600;
+}
+
+.folder-icon, .file-icon {
+    width: 24px;
+    margin-right: 10px;
+    color: #5f6368;
+}
+
+.file-item.active .file-icon { color: #1967d2; }
+
+/* 4. Right Preview Pane */
+.preview-pane {
+    flex: 1; /* Takes all remaining width */
+    background: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.pdf-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.pdf-frame.hidden { display: none; }
+
+/* Empty State Styling */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #888;
+    background-color: #f8f9fa;
+}

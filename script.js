@@ -88,36 +88,53 @@ function renderGrid(selectedYear) {
             const disabledClass = subject.isAvailable ? '' : 'disabled';
             const buttonText = subject.isAvailable ? 'View Files' : 'Unavailable';
 
+            // 1. Image Logic
             let backgroundStyle = '';
-
-            // NEW LOGIC: Use the GitHub URL
             if (subject.image && subject.image.length > 0) {
                 backgroundStyle = `background-image: url('${IMAGES_BASE_URL}${subject.image}');`;
             } else {
                 backgroundStyle = `background-color: ${subject.bgColor || '#3498db'};`;
             }
 
+            // 2. Button Logic
             const linkHTML = subject.isAvailable 
                 ? `<a href="./files.html?subject=${subject.title}">
                         <button>${buttonText}</button>
                     </a>`
                 : `<button disabled>${buttonText}</button>`;
 
+            // 3. NEW: Year Badge Logic
+            // We join the array ["S1", "S2"] into a string "S1, S2"
+            let yearBadgeHTML = '';
+            if (subject.years && subject.years.length > 0) {
+                yearBadgeHTML = `
+                    <p style="
+                        color: #27ae60; 
+                        font-weight: 600; 
+                        font-size: 0.85rem; 
+                        margin-top: 5px;
+                        margin-bottom: 10px;
+                    ">
+                        <span style="font-size:1.2em">🎓</span> ${subject.years.join(', ')}
+                    </p>
+                `;
+            }
+
+            // 4. Build Card
             const card = document.createElement('div');
             card.className = `course-card ${disabledClass}`;
             card.innerHTML = `
                 <div class="card-image" style="${backgroundStyle}"></div>
                 <div class="card-text">
                     <h3>${subject.title}</h3>
-                    <p>${displayDesc}</p>
-                    ${linkHTML}
+                    <p style="margin-bottom: 5px;">${displayDesc}</p>
+                    ${yearBadgeHTML} ${linkHTML}
                 </div>
             `;
             grid.appendChild(card);
         }
     });
 }
-
 // 3. Listen for Dropdown Changes
 document.addEventListener('DOMContentLoaded', () => {
     loadSubjects(); // Run immediately on load

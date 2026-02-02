@@ -1,51 +1,71 @@
+// Function to get query params
 function getSubjectFromURL() {
     const params = new URLSearchParams(window.location.search);
     return params.get('subject');
 }
 
+// 1. Preview Logic
+window.previewFile = function(url, element) {
+    const viewer = document.getElementById('pdf-viewer');
+    const emptyState = document.getElementById('empty-state');
+    
+    // Hide empty state, show viewer
+    emptyState.style.display = 'none';
+    viewer.classList.remove('hidden');
+    
+    // Load the URL
+    viewer.src = url;
+
+    // Remove 'active' class from all other files
+    document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+    
+    // Add 'active' class to clicked element
+    if (element) {
+        element.classList.add('active');
+    }
+}
+
+// 2. Load Logic
 function loadFiles() {
     const currentSubject = getSubjectFromURL();
     const titleElement = document.getElementById('subject-title');
-    const container = document.getElementById('file-list');
+    const treeContainer = document.getElementById('file-tree');
 
     if (!currentSubject) {
-        titleElement.innerText = "Error";
-        container.innerHTML = "<p style='color:red'>No subject selected.</p>";
+        titleElement.innerText = "No Subject Selected";
         return;
     }
 
-    titleElement.innerText = currentSubject + " Resources";
+    titleElement.innerText = currentSubject;
 
-    fetch('https://shining3366dev-prog.github.io/Syllabusplus-Database/subject-files.csv')
-        .then(response => {
-            if (!response.ok) throw new Error("CSV not found");
-            return response.text();
-        })
+    // FETCH FROM DATABASE REPO
+    const FILES_URL = 'https://raw.githubusercontent.com/shining3366dev-prog/Syllabusplus-Database/main/subject-files.csv';
+
+    fetch(FILES_URL)
+        .then(res => res.text())
         .then(csvText => {
-            const rows = csvText.split('\n');
-            container.innerHTML = ''; 
-
+            const rows = csvText.split('\n').slice(1);
             let totalFiles = 0;
             const fileStructure = {};
 
-            rows.slice(1).forEach(row => {
-                if (row.trim() === '') return;
+            rows.forEach(row => {
+                if (!row.trim()) return;
                 const cols = row.split(';');
                 
-                // FORMAT: Path;Name;Link
                 const fullPath = cols[0]?.trim(); 
                 const displayName = cols[1]?.trim();
                 const fileLink = cols[2]?.trim();
 
                 if (fullPath && fileLink) {
-                    const parts = fullPath.split(/[/\\]/);
+                    const parts = fullPath.split(/[/\\]/); // Handle / or \
                     const rowSubject = parts[0];
 
                     if (rowSubject.toLowerCase() === currentSubject.toLowerCase()) {
                         totalFiles++;
-                        const folders = parts.slice(1);
-                        let currentLevel = fileStructure;
+                        // Build hierarchy: Subject -> Folder -> Subfolder
+                        const folders = parts.slice(1); // Remove subject name from path
                         
+                        let currentLevel = fileStructure;
                         folders.forEach(folder => {
                             if (!currentLevel[folder]) { currentLevel[folder] = {}; }
                             currentLevel = currentLevel[folder];
@@ -58,52 +78,54 @@ function loadFiles() {
             });
 
             if (totalFiles === 0) {
-                container.innerHTML = `<p style='color:#777;'>No files found for ${currentSubject}.</p>`;
+                treeContainer.innerHTML = `<p style="padding:20px;">No files found for ${currentSubject}.</p>`;
                 return;
             }
 
-            // --- RECURSIVE RENDER WITH COLLAPSIBLE FOLDERS ---
-            function renderStructure(structure) {
-                let html = '<div class="file-group">';
-                
-                // 1. Render FOLDERS first (looks better for organization)
-                for (const key in structure) {
-                    if (key !== '__FILES__') {
-                        html += `
-                            <details class="folder-details">
-                                <summary class="folder-summary">
-                                    <span class="folder-icon">📁</span> ${key}
-                                </summary>
-                                <div class="folder-content">
-                                    ${renderStructure(structure[key])}
-                                </div>
-                            </details>
-                        `;
-                    }
-                }
-
-                // 2. Render FILES
-                if (structure['__FILES__']) {
-                    structure['__FILES__'].forEach(file => {
-                        html += `
-                            <div class="file-item">
-                                <span class="file-icon">📄</span>
-                                <a href="${file.link}" class="file-link" target="_blank">${file.name}</a>
-                            </div>
-                        `;
-                    });
-                }
-
-                html += '</div>';
-                return html;
-            }
-
-            container.innerHTML = renderStructure(fileStructure);
+            // Render the sidebar
+            treeContainer.innerHTML = renderStructure(fileStructure);
         })
         .catch(err => {
             console.error(err);
-            container.innerHTML = "<p style='color:red'>Error loading file database.</p>";
+            treeContainer.innerHTML = "<p style='color:red; padding:20px;'>Error loading files.</p>";
         });
 }
 
-loadFiles();
+// 3. Recursive Render Logic (Updated for Sidebar)
+function renderStructure(structure) {
+    let html = '';
+    
+    // Render FOLDERS
+    for (const key in structure) {
+        if (key !== '__FILES__') {
+            html += `
+                <details class="folder-details" open>
+                    <summary class="folder-summary">
+                        <i class="fa-regular fa-folder folder-icon"></i> ${key}
+                    </summary>
+                    <div class="folder-content">
+                        ${renderStructure(structure[key])}
+                    </div>
+                </details>
+            `;
+        }
+    }
+
+    // Render FILES (Clickable Divs now, not Links)
+    if (structure['__FILES__']) {
+        structure['__FILES__'].forEach(file => {
+            // Note: We escape the URL string to prevent errors
+            html += `
+                <div class="file-item" onclick="previewFile('${file.link}', this)">
+                    <i class="fa-regular fa-file-pdf file-icon"></i>
+                    <span>${file.name}</span>
+                </div>
+            `;
+        });
+    }
+
+    return html;
+}
+
+// Run on load
+document.addEventListener('DOMContentLoaded', loadFiles);
