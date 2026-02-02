@@ -3,7 +3,7 @@ let allSubjects = []; // Store data here so we don't fetch twice
 // 1. Fetch and Parse Data
 function loadSubjects() {
     // FORCE USE OF GITHUB DATABASE (Solves the "Error" / 404 issue)
-    const WIDGETS_URL = 'https://raw.githubusercontent.com/shining3366dev-prog/Syllabusplus-Database/main/course-card-widgets.csv';
+    const WIDGETS_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/course-card-widgets.csv';
 
     console.log("Fetching URL:", WIDGETS_URL); // Debugging line
 
@@ -71,7 +71,7 @@ function renderGrid(selectedYear) {
     grid.innerHTML = ''; 
 
     // POINT THIS TO YOUR DATABASE REPO IMAGES
-    const IMAGES_BASE_URL = 'https://raw.githubusercontent.com/shining3366dev-prog/Syllabusplus-Database/main/images/';
+    const IMAGES_BASE_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/images/';
 
     const filteredSubjects = allSubjects.filter(subject => {
         return selectedYear === "ALL" || subject.years.includes(selectedYear);
