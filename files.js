@@ -33,9 +33,9 @@ function loadFiles() {
     titleElement.innerText = currentSubject;
 
     // Use your GitHub Database URL
-    const FILES_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/subject-files.csv';
+    const FILES_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/subject-files.csv?t=' + Date.now();
 
-    fetch(FILES_URL)
+    fetch(FILES_URL, {cache: "no-store",headers: {'Cache-Control': 'no-cache','Pragma': 'no-cache'}})
         .then(res => res.text())
         .then(csvText => {
             const rows = csvText.split('\n').slice(1);
