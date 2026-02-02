@@ -16,7 +16,7 @@ function loadFiles() {
 
     titleElement.innerText = currentSubject + " Resources";
 
-    fetch('https://shining3366dev-prog.github.io/Syllabusplus-Database/images/subject-files.csv')
+    fetch('https://shining3366dev-prog.github.io/Syllabusplus-Database/subject-files.csv')
         .then(response => {
             if (!response.ok) throw new Error("CSV not found");
             return response.text();
