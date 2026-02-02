@@ -1,75 +1,96 @@
-// Function to load and parse the CSV data
-// Function to load and parse the CSV data
+let allSubjects = []; // Store data here so we don't fetch twice
+
+// 1. Fetch and Parse Data
 function loadSubjects() {
-    // NEW: Points to your Database Repository
-    const WIDGETS_URL = 'https://raw.githubusercontent.com/shining3366dev-prog/Syllabusplus-Database/main/course-card-widgets.csv';
+    // SWITCH THIS URL FOR LIVE VS LOCAL
+    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+    const WIDGETS_URL = isLocal 
+        ? './course-card-widgets.csv' 
+        : 'https://raw.githubusercontent.com/shining3366dev-prog/Syllabusplus-Database/main/course-card-widgets.csv';
 
     fetch(WIDGETS_URL)
-        .then(response => {
-            if (!response.ok) throw new Error("File not found on GitHub");
-            return response.text();
-        })
+        .then(res => res.text())
         .then(csvText => {
-            if (csvText.trim().startsWith("<!DOCTYPE")) {
-                throw new Error("File is HTML, not CSV. Check repository permissions.");
-            }
-
-            const rows = csvText.split('\n');
-            const grid = document.getElementById('subject-grid');
-            grid.innerHTML = ''; 
-
-            rows.slice(1).forEach(row => {
-                if (row.trim() === '') return;
+            const rows = csvText.split('\n').slice(1); // Skip header
+            
+            allSubjects = rows.map(row => {
+                if (row.trim() === '') return null;
                 const cols = row.split(';');
+                
+                return {
+                    title: cols[0]?.trim(),
+                    desc: cols[1]?.trim(),
+                    isAvailable: cols[2]?.trim().toUpperCase() === 'TRUE',
+                    bgColor: cols[3]?.trim(),
+                    image: cols[4]?.trim(),
+                    // NEW: Split the "S1,S2..." string into an array ['S1', 'S2']
+                    years: cols[5] ? cols[5].trim().split(',') : []
+                };
+            }).filter(item => item !== null); // Remove empty rows
 
-                const title = cols[0]?.trim();
-                const rawDescription = cols[1]?.trim();
-                const isAvailable = cols[2]?.trim().toUpperCase() === 'TRUE';
-                const bgColor = cols[3]?.trim();
-                const imageFile = cols[4]?.trim(); 
-
-                if (title) {
-                    const displayDescription = isAvailable ? (rawDescription || 'Resources Available') : 'Not Available';
-                    const disabledClass = isAvailable ? '' : 'disabled';
-                    const buttonText = isAvailable ? 'View Files' : 'Unavailable';
-                    
-                    let backgroundStyle = '';
-                    if (imageFile && imageFile.length > 0) {
-                        // NOTE: This assumes images remain in your UI repository's images/ folder
-                        backgroundStyle = `background-image: url('images/${imageFile}');`;
-                    } else if (isAvailable) {
-                        backgroundStyle = `background-color: ${bgColor || '#3498db'};`;
-                    } else {
-                        backgroundStyle = `background-color: #95a5a6;`;
-                    }
-
-                    const linkHTML = isAvailable 
-                        ? `<a href="./files.html?subject=${title}" style="text-decoration:none;">
-                            <button style="cursor:pointer;">${buttonText}</button>
-                        </a>`
-                        : `<button disabled>${buttonText}</button>`;
-
-                    const card = document.createElement('div');
-                    card.className = `course-card ${disabledClass}`;
-                    card.innerHTML = `
-                        <div class="card-image" style="${backgroundStyle}"></div>
-                        <div class="card-text">
-                            <h3>${title}</h3>
-                            <p>${displayDescription}</p>
-                            ${linkHTML}
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                }
-            });
+            // Render "ALL" by default initially
+            renderGrid("ALL");
         })
-        .catch(err => {
-            console.error('Error loading subjects:', err);
-            const grid = document.getElementById('subject-grid');
-            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: red;"><h3>⚠️ Database Connection Failed</h3></div>`;
-        });
+        .catch(err => console.error("Error loading CSV:", err));
 }
 
+// 2. Render the Grid based on Year Filter
+function renderGrid(selectedYear) {
+    const grid = document.getElementById('subject-grid');
+    grid.innerHTML = '';
+
+    allSubjects.forEach(subject => {
+        // FILTER LOGIC:
+        // If "ALL" is selected, show everything.
+        // If specific year (e.g., "S4") is selected, check if subject.years includes it.
+        const shouldShow = selectedYear === "ALL" || subject.years.includes(selectedYear);
+
+        if (shouldShow && subject.title) {
+            const displayDesc = subject.isAvailable ? (subject.desc || 'Resources Available') : 'Not Available';
+            const disabledClass = subject.isAvailable ? '' : 'disabled';
+            const buttonText = subject.isAvailable ? 'View Files' : 'Unavailable';
+
+            let backgroundStyle = '';
+            // If local, use relative path. If live, use raw github path for images? 
+            // For now assuming images are in the same repo as index.html (standard setup)
+            if (subject.image) {
+                backgroundStyle = `background-image: url('images/${subject.image}');`;
+            } else {
+                backgroundStyle = `background-color: ${subject.bgColor || '#3498db'};`;
+            }
+
+            const linkHTML = subject.isAvailable 
+                ? `<a href="./files.html?subject=${subject.title}">
+                     <button>${buttonText}</button>
+                   </a>`
+                : `<button disabled>${buttonText}</button>`;
+
+            const card = document.createElement('div');
+            card.className = `course-card ${disabledClass}`;
+            card.innerHTML = `
+                <div class="card-image" style="${backgroundStyle}"></div>
+                <div class="card-text">
+                    <h3>${subject.title}</h3>
+                    <p>${displayDesc}</p>
+                    ${linkHTML}
+                </div>
+            `;
+            grid.appendChild(card);
+        }
+    });
+}
+
+// 3. Listen for Dropdown Changes
+document.addEventListener('DOMContentLoaded', () => {
+    loadSubjects(); // Start loading
+    
+    const yearSelect = document.getElementById('year-select');
+    if(yearSelect) {
+        yearSelect.addEventListener('change', (e) => {
+            renderGrid(e.target.value); // Re-render when user picks a year
+        });
+    }
+});
 function loadFiles() {
     const currentSubject = getSubjectFromURL();
     const titleElement = document.getElementById('subject-title');
