@@ -158,4 +158,56 @@ function loadFiles() {
         });
 }
 
-loadSubjects();
+function renderGrid(selectedYear) {
+    const grid = document.getElementById('subject-grid');
+    if (!grid) return; // Stop if we are not on the index page
+
+    grid.innerHTML = '';
+
+    allSubjects.forEach(subject => {
+        // Filter logic
+        const shouldShow = selectedYear === "ALL" || subject.years.includes(selectedYear);
+
+        if (shouldShow && subject.title) {
+             // ... (Your existing card creation code goes here) ...
+             // Copy the code from previous step here (creating the div, innerHTML, etc.)
+             // ...
+             grid.appendChild(card);
+        }
+    });
+}
+
+// Global Event Listener
+document.addEventListener('DOMContentLoaded', () => {
+    loadSubjects(); // Load CSV data
+
+    const navSelect = document.getElementById('nav-year-select');
+    
+    // 1. If the selector exists (layout.js loaded), set up the listener
+    if (navSelect) {
+        
+        // A. If we have a saved year, use it immediately
+        const savedYear = localStorage.getItem('selectedYear') || "ALL";
+        navSelect.value = savedYear;
+
+        // B. Listen for changes
+        navSelect.addEventListener('change', (e) => {
+            const newYear = e.target.value;
+            
+            // Save to browser memory
+            localStorage.setItem('selectedYear', newYear);
+            
+            // If we are on the Home page, update grid immediately
+            renderGrid(newYear);
+            
+            // If user changes year while on 'files.html', maybe redirect home?
+            if (!document.getElementById('subject-grid')) {
+                window.location.href = "index.html"; 
+            }
+        });
+    }
+});
+
+// Update loadSubjects to render with the SAVED year, not just "ALL"
+// In your loadSubjects function, change: renderGrid("ALL"); 
+// to: renderGrid(localStorage.getItem('selectedYear') || "ALL");

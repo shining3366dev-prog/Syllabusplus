@@ -313,3 +313,27 @@ footer {
     transform: rotate(90deg); /* Rotates the arrow when open */
     color: #3498db;
 }
+/* Style for the Navbar Dropdown */
+.nav-select {
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-right: 15px; /* Space between selector and links */
+    outline: none;
+    font-weight: bold;
+    color: #333;
+}
+
+.nav-select:hover {
+    border-color: #3498db; /* Blue border on hover */
+}
+
+/* Ensure navbar items align correctly */
+.navbar {
+    display: flex;
+    align-items: center; /* Vertically center everything */
+    gap: 15px;
+}
