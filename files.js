@@ -19,7 +19,7 @@ window.previewFile = function(url, element) {
     if (element) element.classList.add('active');
 }
 
-// 2. Fetch & Render Logic
+// 2. Fetch & Render Logic lol
 function loadFiles() {
     const currentSubject = getSubjectFromURL();
     const titleElement = document.getElementById('subject-title');
