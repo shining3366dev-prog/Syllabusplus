@@ -31,7 +31,7 @@ const headerHTML = `
 // 2. Footer
 const footerHTML = `
     <footer>
-        <p>&copy; 2026 EIGT PLUS. All rights reserved.</p>
+        <p>&copy; 2026 SYLLABUSPLUS. All rights reserved.</p>
     </footer>
 `;
 
