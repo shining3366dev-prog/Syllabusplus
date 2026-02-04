@@ -99,34 +99,37 @@ function updateActiveButton(year) {
     }
 }
 
-// 3. Render Grid
+// 3. Render Grid with GUARANTEED Sorting
 function renderGrid(selectedYear) {
     const grid = document.getElementById('subject-grid');
     if (!grid) return;
     
     grid.innerHTML = '';
 
+    // STEP 1: Filter by year
     const filteredSubjects = allSubjects.filter(sub => {
         if (selectedYear === "ALL") return true;
         // Trim allows "S1 " to match "S1"
         return sub.years.some(y => y.trim() === selectedYear);
-    })
-    // --- NEW: SORTING LOGIC ---
-    .sort((a, b) => {
-        // If availability is different, put Available (true) first
-        if (a.isAvailable !== b.isAvailable) {
-            return a.isAvailable ? -1 : 1;
-        }
-        // If availability is the same, keep original CSV order
-        return 0;
     });
-    // ---------------------------
+
+    // STEP 2: FORCE SORT - Available courses ALWAYS come first
+    filteredSubjects.sort((a, b) => {
+        // Convert boolean to number: true = 0, false = 1
+        // This ensures available (true/0) comes before unavailable (false/1)
+        const aValue = a.isAvailable ? 0 : 1;
+        const bValue = b.isAvailable ? 0 : 1;
+        return aValue - bValue;
+    });
+
+    console.log('Sorted subjects:', filteredSubjects.map(s => ({title: s.title, available: s.isAvailable})));
 
     if (filteredSubjects.length === 0) {
         grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#888;">No subjects found for this year.</p>';
         return;
     }
 
+    // STEP 3: Render cards
     filteredSubjects.forEach(subject => {
         const buttonText = subject.isAvailable ? 'View Files' : 'Coming Soon';
         const linkHTML = subject.isAvailable 
