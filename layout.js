@@ -1,4 +1,4 @@
-// 1. Define the Navigation Bar HTML
+// 1. Define the Navigation Bar HTML (Clean - No Dropdown)
 const headerHTML = `
     <header class="header">
         <a href="index.html" class="logo">Syllabus+</a>
@@ -9,18 +9,6 @@ const headerHTML = `
 
         <nav class="navbar" id="main-nav">
             <a href="index.html">Home</a>
-            
-            <select id="nav-year-select" class="nav-select">
-                <option value="ALL">All Years</option>
-                <option value="S1">Year S1</option>
-                <option value="S2">Year S2</option>
-                <option value="S3">Year S3</option>
-                <option value="S4">Year S4</option>
-                <option value="S5">Year S5</option>
-                <option value="S6">Year S6</option>
-                <option value="S7">Year S7</option>
-            </select>
-
             <a href="index.html#subjects">Subjects</a>
             <a href="#about">About</a>
             <a href="#" class="btn-login" onclick="loginGoogle()">Login</a>
@@ -31,7 +19,7 @@ const headerHTML = `
 // 2. Footer
 const footerHTML = `
     <footer>
-        <p>&copy; 2026 EIGT PLUS. All rights reserved.</p>
+        <p>&copy; 2026 SYLLABUSPLUS. All rights reserved.</p>
     </footer>
 `;
 
@@ -46,12 +34,7 @@ function loadLayout() {
         if (link.getAttribute('href') === currentPage) link.classList.add('active');
     });
 
-    // Recover Saved Year
-    const savedYear = localStorage.getItem('selectedYear');
-    const selectBox = document.getElementById('nav-year-select');
-    if (savedYear && selectBox) selectBox.value = savedYear;
-
-    // --- MOBILE MENU LOGIC ---
+    // Mobile Menu Logic
     const menuBtn = document.getElementById('mobile-menu-btn');
     const nav = document.getElementById('main-nav');
     

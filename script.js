@@ -1,11 +1,14 @@
-let allSubjects = []; // Store data here so we don't fetch twice
+let allSubjects = [];
 
-// 1. Fetch and Parse Data
+// 1. Load Data
 function loadSubjects() {
-    // FORCE USE OF GITHUB DATABASE (Solves the "Error" / 404 issue)
-    const WIDGETS_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/course-card-widgets.csv';
+    // Force fresh load from GitHub
+    const WIDGETS_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/course-card-widgets.csv?t=' + Date.now();
+    
+    // THIS IS THE MISSING PART THAT FIXES YOUR IMAGES
+    const IMAGES_BASE_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/images/';
 
-    console.log("Fetching URL:", WIDGETS_URL); // Debugging line
+    console.log("Fetching URL:", WIDGETS_URL);
 
     fetch(WIDGETS_URL)
         .then(res => {
@@ -17,146 +20,133 @@ function loadSubjects() {
                 throw new Error("Invalid CSV: GitHub returned an HTML error page.");
             }
 
-            const rows = csvText.split('\n').slice(1); // Skip header
+            const rows = csvText.split('\n').slice(1);
             
             allSubjects = rows.map(row => {
-                // Ignore empty lines
                 if (!row || row.trim() === '') return null;
-                
                 const cols = row.split(';');
-                if (cols.length < 3) return null; // Ignore broken rows
+                if (cols.length < 3) return null;
+
+                // --- IMAGE LOGIC RESTORED ---
+                let imageName = cols[4]?.trim();
+                let finalImageUrl = '';
+
+                // If CSV has a filename (e.g. "math.jpg"), combine it with base URL
+                if (imageName && imageName.length > 0) {
+                    // Check if it's already a full link (http), otherwise add base path
+                    if (imageName.startsWith('http')) {
+                        finalImageUrl = imageName;
+                    } else {
+                        finalImageUrl = IMAGES_BASE_URL + imageName;
+                    }
+                }
+                // -----------------------------
 
                 return {
                     title: cols[0]?.trim(),
                     desc: cols[1]?.trim(),
                     isAvailable: cols[2]?.trim().toUpperCase() === 'TRUE',
                     bgColor: cols[3]?.trim(),
-                    image: cols[4]?.trim(),
-                    // Safety check for years
-                    years: cols[5] ? cols[5].trim().split(',') : []
+                    image: finalImageUrl, // Use the constructed URL
+                    years: cols[5] ? cols[5].replace(/[\r\n]/g, "").trim().split(',') : []
                 };
             }).filter(item => item !== null);
 
-            console.log(`Loaded ${allSubjects.length} subjects successfully.`);
-
-            // FIX "NULL" ERROR: Check if saved year is valid, otherwise reset to ALL
+            // Recover saved year from Sidebar selection
             let savedYear = localStorage.getItem('selectedYear');
-            if (!savedYear || savedYear === "null" || savedYear === "undefined") {
-                savedYear = "ALL";
-                localStorage.setItem('selectedYear', "ALL");
-            }
+            if (!savedYear || savedYear === "null") savedYear = "ALL";
             
+            updateActiveButton(savedYear);
             renderGrid(savedYear);
         })
         .catch(err => {
             console.error("Critical Error:", err);
             const grid = document.getElementById('subject-grid');
-            if (grid) {
-                grid.innerHTML = `
-                    <div style="text-align: center; color: #e74c3c; padding: 20px;">
-                        <h3>⚠️ Error Loading Data</h3>
-                        <p>${err.message}</p>
-                        <p>Check the Console (F12) for details.</p>
-                    </div>
-                `;
-            }
+            if (grid) grid.innerHTML = `<p style="color:red; text-align:center;">Error loading data. Check console.</p>`;
         });
 }
 
-// 2. Render the Grid (THE PART THAT WAS MISSING)
+// 1. Unified Filter Function
+window.filterYear = function(year) {
+    // Save selection
+    localStorage.setItem('selectedYear', year);
+    
+    // Update UI (Sync both Dropdown and Buttons)
+    updateActiveButton(year);
+    
+    // Render
+    renderGrid(year);
+}
+
+// 2. Sync Helper (Updates both Inputs)
+function updateActiveButton(year) {
+    // A. Update Buttons (Desktop)
+    const buttons = document.querySelectorAll('.year-btn');
+    buttons.forEach(btn => {
+        if(btn.innerText.includes(year) || (year === 'ALL' && btn.innerText.includes('All'))) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // B. Update Dropdown (Mobile)
+    const dropdown = document.getElementById('mobile-year-select');
+    if (dropdown) {
+        dropdown.value = year;
+    }
+}
+
+// 3. Render Grid
 function renderGrid(selectedYear) {
     const grid = document.getElementById('subject-grid');
-    if (!grid) return; 
+    if (!grid) return;
+    
+    grid.innerHTML = '';
 
-    grid.innerHTML = ''; 
-
-    // POINT THIS TO YOUR DATABASE REPO IMAGES
-    const IMAGES_BASE_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/images/';
-
-    const filteredSubjects = allSubjects.filter(subject => {
-        return selectedYear === "ALL" || subject.years.includes(selectedYear);
+    const filteredSubjects = allSubjects.filter(sub => {
+        if (selectedYear === "ALL") return true;
+        // Trim allows "S1 " to match "S1"
+        return sub.years.some(y => y.trim() === selectedYear);
     });
 
     if (filteredSubjects.length === 0) {
-        grid.innerHTML = '<p style="text-align:center; width:100%;">No subjects found for this year.</p>';
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#888;">No subjects found for this year.</p>';
         return;
     }
 
     filteredSubjects.forEach(subject => {
-        if (subject.title) {
-            const displayDesc = subject.isAvailable ? (subject.desc || 'Resources Available') : 'Not Available';
-            const disabledClass = subject.isAvailable ? '' : 'disabled';
-            const buttonText = subject.isAvailable ? 'View Files' : 'Unavailable';
-
-            // 1. Image Logic
-            let backgroundStyle = '';
-            if (subject.image && subject.image.length > 0) {
-                backgroundStyle = `background-image: url('${IMAGES_BASE_URL}${subject.image}');`;
-            } else {
-                backgroundStyle = `background-color: ${subject.bgColor || '#3498db'};`;
-            }
-
-            // 2. Button Logic
-            const linkHTML = subject.isAvailable 
-                ? `<a href="./files.html?subject=${subject.title}">
-                        <button>${buttonText}</button>
-                    </a>`
-                : `<button disabled>${buttonText}</button>`;
-
-            // 3. NEW: Year Badge Logic
-            // We join the array ["S1", "S2"] into a string "S1, S2"
-            let yearBadgeHTML = '';
-            if (subject.years && subject.years.length > 0) {
-                yearBadgeHTML = `
-                    <p style="
-                        color: #27ae60; 
-                        font-weight: 600; 
-                        font-size: 0.85rem; 
-                        margin-top: 5px;
-                        margin-bottom: 10px;
-                    ">
-                        <span style="font-size:1.2em">🎓</span> ${subject.years.join(', ')}
-                    </p>
-                `;
-            }
-
-            // 4. Build Card
-            const card = document.createElement('div');
-            card.className = `course-card ${disabledClass}`;
-            card.innerHTML = `
-                <div class="card-image" style="${backgroundStyle}"></div>
-                <div class="card-text">
-                    <h3>${subject.title}</h3>
-                    <p style="margin-bottom: 5px;">${displayDesc}</p>
-                    ${yearBadgeHTML} ${linkHTML}
-                </div>
-            `;
-            grid.appendChild(card);
+        const buttonText = subject.isAvailable ? 'View Files' : 'Coming Soon';
+        const linkHTML = subject.isAvailable 
+            ? `<button onclick="window.location.href='files.html?subject=${encodeURIComponent(subject.title)}'">${buttonText}</button>`
+            : `<button disabled>${buttonText}</button>`;
+            
+        let yearBadgeHTML = '';
+        if (subject.years && subject.years.length > 0) {
+            yearBadgeHTML = `<p style="color:#27ae60; font-weight:700; font-size:0.8rem; margin-bottom:5px;">🎓 ${subject.years.join(', ')}</p>`;
         }
+
+        // Background Logic: Image OR Color
+        let backgroundStyle = '';
+        if (subject.image) {
+            backgroundStyle = `background-image: url('${subject.image}');`;
+        } else {
+            backgroundStyle = `background-color: ${subject.bgColor || '#3498db'};`;
+        }
+
+        const card = document.createElement('div');
+        card.className = `course-card ${subject.isAvailable ? '' : 'disabled'}`;
+        card.innerHTML = `
+            <div class="card-image" style="${backgroundStyle}"></div>
+            <div class="card-text">
+                <h3>${subject.title}</h3>
+                <p>${subject.desc || ''}</p>
+                ${yearBadgeHTML}
+                ${linkHTML}
+            </div>
+        `;
+        grid.appendChild(card);
     });
 }
-// 3. Listen for Dropdown Changes
-document.addEventListener('DOMContentLoaded', () => {
-    loadSubjects(); // Run immediately on load
 
-    const navSelect = document.getElementById('nav-year-select');
-    
-    // If the navbar selector exists
-    if (navSelect) {
-        // Restore saved selection
-        const savedYear = localStorage.getItem('selectedYear') || "ALL";
-        navSelect.value = savedYear;
-
-        // Listen for changes
-        navSelect.addEventListener('change', (e) => {
-            const newYear = e.target.value;
-            localStorage.setItem('selectedYear', newYear); // Save to memory
-            renderGrid(newYear); // Update grid
-            
-            // Redirect if not on home page
-            if (!document.getElementById('subject-grid')) {
-                window.location.href = "index.html";
-            }
-        });
-    }
-});
+document.addEventListener('DOMContentLoaded', loadSubjects);

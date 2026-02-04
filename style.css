@@ -18,72 +18,37 @@ body {
     line-height: 1.6;
     display: flex;
     flex-direction: column;
-    
-    /* FIX 1: Push the whole site down so it doesn't hide behind the header */
     padding-top: 80px; 
 }
 
-.main-content {
-    flex: 1; 
-}
-
 /* =========================================
-   2. HEADER & NAVIGATION (LOCKED FIXED)
+   2. HEADER & NAVIGATION
    ========================================= */
 .header {
     background-color: #fff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    
-    /* FIX 2: Lock it to the top */
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    
-    /* FIX 3: Set a specific height */
-    height: 80px; 
-    
+    top: 0; left: 0; width: 100%;
+    height: 80px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 5%; /* Use 0 for top/bottom, height handles it */
+    padding: 0 3%;
     z-index: 1000;
 }
 
-/* Logo Button */
 .logo {
     font-size: 1.5rem;
     font-weight: 800;
     color: #2c3e50;
     text-decoration: none;
-    cursor: pointer;
-    transition: color 0.2s;
 }
-
 .logo:hover { color: #3498db; }
 
-/* Hamburger Button */
-.menu-toggle { display: none; }
+.navbar { display: flex; align-items: center; gap: 25px; }
+.navbar a { text-decoration: none; color: #555; font-weight: 500; transition: color 0.3s; }
+.navbar a:hover, .navbar a.active { color: #3498db; }
 
-/* Navbar Links */
-.navbar {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-}
-
-.navbar a {
-    text-decoration: none;
-    color: #555;
-    font-weight: 500;
-    transition: color 0.3s;
-}
-
-.navbar a:hover, .navbar a.active {
-    color: #3498db;
-}
-
-/* Login Button */
 .btn-login {
     background-color: #3498db;
     color: white !important;
@@ -91,36 +56,16 @@ body {
     border-radius: 5px;
 }
 
-.btn-login:hover { background-color: #2980b9; }
-
-/* Dropdown Select */
-.nav-select {
-    appearance: none;
-    background-color: #f8f9fa;
-    border: 1px solid #e1e4e8;
-    padding: 8px 35px 8px 15px;
-    border-radius: 50px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #2c3e50;
-    cursor: pointer;
-    outline: none;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%232c3e50%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 10px;
-}
-
-.nav-select:hover { background-color: #fff; border-color: #3498db; }
+.menu-toggle { display: none; }
 
 /* =========================================
-   3. HERO & COURSE GRID
+   3. HERO SECTION
    ========================================= */
 .hero {
-    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://shining3366dev-prog.github.io/Syllabusplus-Database/images/EIGT_Above-thumbnail.png');
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://shining3366dev-prog.github.io/Syllabusplus-Database/images/EIGT_Above-thumbnail.png');
     background-size: cover;
     background-position: center;
-    height: 70vh;
+    height: 60vh; 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -128,135 +73,117 @@ body {
     color: white;
 }
 
-.hero h1 { font-size: 3rem; margin-bottom: 1rem; }
-
+.hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
 .cta-button {
     display: inline-block;
-    padding: 12px 30px;
+    padding: 10px 25px;
     background-color: #e74c3c;
     color: white;
     text-decoration: none;
     border-radius: 5px;
     font-weight: bold;
-    transition: background 0.3s;
+    margin-top: 15px;
 }
 
-.cta-button:hover { background-color: #c0392b; }
+/* =========================================
+   4. APP LAYOUT (Sidebar + Grid)
+   ========================================= */
+.app-layout {
+    display: flex;
+    /* FIX: Use 98% width to fill the screen like the old version */
+    max-width: 98%; 
+    margin: 0 auto;
+    padding: 2rem 1%; 
+    gap: 1.5rem; 
+}
 
-.container { padding: 4rem 5%; }
-.section-title { text-align: center; margin-bottom: 3rem; font-size: 2rem; color: #2c3e50; }
+/* LEFT SIDEBAR */
+.sidebar-filter {
+    width: 240px; 
+    flex-shrink: 0;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    height: fit-content;
+    position: sticky;
+    top: 100px; 
+}
+
+.sidebar-header-internal h3 { font-size: 1.1rem; color: #2c3e50; margin-bottom: 5px; }
+.filter-subtitle { font-size: 0.85rem; color: #888; margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+
+.year-buttons { display: flex; flex-direction: column; gap: 8px; }
+
+.year-btn {
+    padding: 10px 15px;
+    border: 1px solid transparent;
+    background: #fff;
+    color: #555;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.year-btn:hover { background-color: #f8f9fa; color: #3498db; }
+.year-btn.active { background-color: #e3f2fd; color: #0288d1; font-weight: 700; }
+
+/* RIGHT CONTENT */
+.content-area { flex-grow: 1; }
+.section-title { margin-bottom: 1.5rem; font-size: 1.5rem; color: #2c3e50; }
 
 .course-grid {
     display: grid;
-    /* Smart grid that fits as many 220px cards as possible */
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 2rem;
+    /* FIX: Reduced min-width to 200px to allow MORE COLUMNS */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+    gap: 1.5rem;
 }
 
+/* COURSE CARD */
 .course-card {
     background: white;
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
-    display: flex;
-    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+    border: 1px solid #f0f0f0;
+}
+.course-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+/* IMAGE FIX */
+.card-image { 
+    height: 130px; /* Slightly shorter for compact look */
+    width: 100%; 
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat;
+    background-color: #eee; 
 }
 
-.course-card:hover { transform: translateY(-5px); }
-
-.card-image { height: 150px; width: 100%; background-size: cover; background-position: center; }
-.card-text { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
-.course-card h3 { margin-bottom: 0.5rem; color: #2c3e50; }
+.card-text { padding: 1rem; }
+.card-text h3 { margin-bottom: 0.4rem; font-size: 1.1rem; color: #2c3e50; }
+.card-text p { font-size: 0.85rem; color: #666; margin-bottom: 1rem; line-height: 1.4; }
 
 .card-text button {
-    margin-top: auto; /* Pushes button to bottom */
-    padding: 8px 16px;
+    padding: 6px 0;
     border: 1px solid #3498db;
-    background: transparent;
+    background: white;
     color: #3498db;
     cursor: pointer;
     border-radius: 4px;
+    font-size: 0.9rem;
+    width: 100%;
 }
 .card-text button:hover { background: #3498db; color: white; }
 
-/* Disabled Card State */
-.course-card.disabled { opacity: 0.6; pointer-events: none; background: #f9f9f9; }
+/* Disabled State */
+.course-card.disabled { opacity: 0.6; pointer-events: none; }
 .course-card.disabled button { border-color: #ccc; color: #ccc; }
-
-/* =========================================
-   4. VS CODE STYLE FILE EXPLORER
-   ========================================= */
-.explorer-wrapper {
-    display: flex;
-    height: calc(100vh - 140px); /* Fits between header/footer */
-    background: white;
-    border-top: 1px solid #ddd;
-}
-
-/* Sidebar */
-.sidebar-vertical {
-    width: 300px;
-    background: #f8f9fa;
-    border-right: 1px solid #e0e0e0;
-    display: flex;
-    flex-direction: column;
-}
-
-.sidebar-top { padding: 15px; background: #fff; border-bottom: 1px solid #eee; }
-
-.btn-back {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: #555;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 10px;
-}
-.btn-back i { margin-right: 8px; }
-
-/* Folder Tree */
-.file-tree-content { padding: 10px; overflow-y: auto; flex: 1; }
-
-.folder-details { margin-bottom: 5px; }
-.folder-summary {
-    list-style: none; cursor: pointer; padding: 6px 10px;
-    display: flex; align-items: center; font-weight: 600; color: #444;
-}
-.folder-summary::-webkit-details-marker { display: none; }
-
-/* Custom Arrow */
-.folder-summary::before {
-    content: '▶'; font-size: 0.7rem; margin-right: 8px; color: #999; transition: transform 0.2s;
-}
-.folder-details[open] > .folder-summary::before { transform: rotate(90deg); }
-
-/* Vertical Guide Lines */
-.folder-content {
-    margin-left: 14px;
-    padding-left: 10px;
-    border-left: 1px solid #ccc; /* THE LINE */
-    display: flex; flex-direction: column;
-}
-
-.file-item {
-    padding: 6px 10px; cursor: pointer; display: flex; align-items: center; gap: 8px;
-    color: #555; border-radius: 4px;
-}
-.file-item:hover { background: #e9ecef; }
-.file-item.active { background: #e3f2fd; color: #1976d2; font-weight: bold; }
-
-/* Preview Area */
-.preview-area { flex: 1; position: relative; background: #fff; }
-.pdf-viewer { width: 100%; height: 100%; border: none; }
-.pdf-viewer.hidden { display: none; }
-
-.empty-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; color: #aaa;
-}
-.empty-state i { font-size: 3rem; margin-bottom: 15px; }
 
 /* =========================================
    5. FOOTER
@@ -268,109 +195,149 @@ footer {
     padding: 2rem;
     margin-top: auto;
 }
+/* --- SIDEBAR FILTER (Common Styles) --- */
+.sidebar-filter {
+    width: 250px;
+    flex-shrink: 0;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
 
+/* DESKTOP VIEW (Default) */
+.mobile-view {
+    display: none; /* Hide Dropdown on Computer */
+}
+
+.desktop-view {
+    display: flex; /* Show Buttons on Computer */
+    flex-direction: column;
+    gap: 8px;
+}
+
+.year-btn {
+    padding: 10px 15px;
+    border: 1px solid transparent;
+    background: #fff;
+    color: #555;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.year-btn:hover { background-color: #f8f9fa; color: #3498db; }
+.year-btn.active { background-color: #e3f2fd; color: #0288d1; font-weight: 700; }
 /* =========================================
-   6. MOBILE RESPONSIVE (PHONES & TABLETS)
+   6. MOBILE RESPONSIVE
    ========================================= */
 @media screen and (max-width: 768px) {
     
-    /* --- A. HERO & GRID FIXES --- */
-    .hero { height: 50vh; }
-    .hero h1 { font-size: 2rem; }
-    
-    /* Keep CTA Button natural width */
-    .cta-button {
-        width: fit-content; 
-        margin-top: 15px;
-    }
-
-    .container { padding: 2rem 3%; }
-
-    /* 2-Column Mobile Grid */
-    .course-grid {
-        grid-template-columns: repeat(2, 1fr); /* Forces 2 columns */
-        gap: 1rem;
-    }
-    
-    /* Compact Card Style */
-    .card-image { height: 100px; }
-    .card-text { padding: 10px; }
-    .course-card h3 { font-size: 1rem; }
-    .card-text p { font-size: 0.8rem; line-height: 1.2; }
-
-    /* BUTTON FIX: Keep them natural width (like computer) */
-    .card-text button {
-        width: fit-content; /* Don't stretch! */
-        padding: 6px 12px;
-        margin-top: 8px;
-        font-size: 0.85rem;
-    }
-    .menu-toggle {
-        display: block;
-        background: none; border: none;
-        font-size: 1.8rem; color: #2c3e50; cursor: pointer;
-    }
-
-    .header { 
-        padding: 0 20px; /* Reset padding for fixed height */
-    }
-    
-    /* Hidden Menu styling */
-    .navbar {
-        display: none; 
-        width: 100%;
+    /* --- A. GENERAL LAYOUT --- */
+    .app-layout {
         flex-direction: column;
-        align-items: center;
-        background: white;
+        padding: 10px;
+        gap: 15px;
+        max-width: 100%;
+    }
+
+    /* --- B. HEADER & HAMBURGER MENU --- */
+    .header {
+        padding: 0 15px;
+    }
+
+    /* 1. Show the Hamburger Button */
+    .menu-toggle {
+        display: block; /* Make it visible */
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        cursor: pointer;
+        color: #2c3e50;
+    }
+
+    /* 2. Style the Hidden Navbar */
+    .navbar {
+        display: none; /* Hidden by default */
         position: absolute;
-        
-        /* FIX 4: Start the menu exactly where the header ends */
-        top: 80px; 
-        
+        top: 80px;
         left: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        padding: 10px 0;
         border-top: 1px solid #eee;
         box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-        padding: 20px 0;
     }
 
-    .navbar.nav-open { display: flex; }
-
-    /* Links inside menu */
-    .navbar a { 
-        width: 100%; 
-        text-align: center; 
-        padding: 12px; 
-        border-bottom: 1px solid #f9f9f9; 
+    /* 3. Open State (Added by JS) */
+    .navbar.nav-open {
+        display: flex;
     }
 
-    /* Login Button inside menu - Natural Width */
-    .btn-login { 
-        width: fit-content !important; 
-        margin-top: 15px; 
+    .navbar a {
+        width: 100%;
+        text-align: center;
+        padding: 15px;
+        border-bottom: 1px solid #f9f9f9;
+        font-size: 1rem;
     }
 
-    /* Dropdown inside menu - Natural Width */
-    .nav-select { 
-        width: fit-content; 
-        margin: 15px 0; 
-        text-align: center; 
-    }
-
-    /* --- C. FILE EXPLORER (STACK VERTICAL) --- */
-    .explorer-wrapper { flex-direction: column; height: calc(100vh - 120px); }
+    /* --- C. YEAR FILTER (THE ENUM SWITCH) --- */
     
-    .sidebar-vertical {
-        width: 100%; height: 40%;
-        border-right: none; border-bottom: 2px solid #3498db;
+    /* 1. Stick the Sidebar to the top */
+    .sidebar-filter {
+        width: 100%;
+        position: sticky;
+        top: 80px; /* Below header */
+        z-index: 90;
+        padding: 10px;
+        background: white;
+        border-bottom: 1px solid #eee;
+        border-radius: 0;
+        border: none;
+        margin: 0;
     }
-    .preview-area { height: 60%; }
 
-    /* Back Button - Natural Width */
-    .btn-back {
-        width: fit-content;
-        margin-bottom: 10px;
-        background: #f0f0f0; /* Optional: adds a little bg to make it clickable */
-        padding: 5px 10px;
-        border-radius: 4px;
+    /* 2. Switch: Hide Buttons, Show Dropdown */
+    .desktop-view { display: none; }
+    .mobile-view  { display: block; position: relative; }
+    .sidebar-header-internal { display: none; }
+
+    /* 3. Style the Dropdown */
+    .year-dropdown {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #f8f9fa;
+        appearance: none; /* Remove default arrow */
+        -webkit-appearance: none;
+    }
+
+    /* 4. Position the Custom Arrow */
+    .dropdown-arrow {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #7f8c8d;
+        pointer-events: none;
+    }
+
+    /* --- D. GRID & CARDS --- */
+    .course-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .card-image {
+        height: 100px;
     }
 }

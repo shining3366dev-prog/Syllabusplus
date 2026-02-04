@@ -1,0 +1,180 @@
+/* =========================================
+   FILES.CSS - File Explorer & PDF Viewer
+   ========================================= */
+
+/* --- LAYOUT WRAPPER --- */
+.explorer-wrapper {
+    display: flex;
+    /* Height calculation: 100vh - Header(80px) - Footer(approx 80px) */
+    height: calc(100vh - 160px); 
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+    overflow: hidden; /* Prevents double scrollbars */
+}
+
+/* --- LEFT SIDEBAR (The Tree) --- */
+.sidebar-vertical {
+    width: 300px; /* Fixed width */
+    background-color: #f8f9fa;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+/* Sidebar Header */
+.sidebar-top {
+    padding: 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+}
+
+.sidebar-info h2 {
+    font-size: 1.1rem;
+    color: #2d3436;
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+
+.badge {
+    font-size: 0.75rem;
+    background: #e1f5fe;
+    color: #0288d1;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Back Button */
+.btn-back {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #636e72;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: color 0.2s;
+}
+.btn-back i { margin-right: 8px; }
+.btn-back:hover { color: #3498db; }
+
+/* --- MINI YEAR FILTER (Specific to Files Sidebar) --- */
+.sidebar-years {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    background-color: #fff;
+}
+
+.sidebar-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #95a5a6;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.mini-year-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+}
+
+.mini-year-btn {
+    padding: 6px 0;
+    font-size: 0.8rem;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #555;
+    transition: background 0.2s;
+}
+
+.mini-year-btn:hover { background-color: #e2e6ea; }
+.mini-year-btn.active { background-color: #3498db; color: white; border-color: #3498db; }
+
+/* --- FILE TREE STRUCTURE --- */
+.file-tree-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.folder-content {
+    margin-left: 14px;
+    padding-left: 10px;
+    border-left: 1px solid #ccc; /* Vertical Guide Line */
+    display: flex; flex-direction: column;
+}
+
+.folder-summary, .file-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #444;
+    transition: background 0.1s;
+    border-radius: 0 4px 4px 0;
+}
+
+.folder-summary:hover, .file-item:hover { background-color: #e3e6ea; }
+
+/* Custom Icons */
+.folder-icon { color: #f39c12; margin-right: 8px; width: 20px; text-align: center; }
+.file-icon   { color: #e74c3c; margin-right: 8px; width: 20px; text-align: center; }
+
+.file-item.active {
+    background-color: #dbeeff;
+    color: #2980b9;
+    font-weight: 600;
+}
+
+/* Hide Default Arrow & Use Custom One */
+.folder-summary::-webkit-details-marker { display: none; }
+.folder-summary { list-style: none; }
+
+/* FontAwesome Folder Icons Logic */
+.folder-details:not([open]) .folder-icon::before {
+    content: "\f07b"; /* fa-folder */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 400;
+}
+.folder-details[open] .folder-icon::before {
+    content: "\f07c"; /* fa-folder-open */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 400;
+}
+
+/* --- RIGHT PREVIEW AREA --- */
+.preview-area {
+    flex: 1;
+    background-color: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.pdf-viewer { width: 100%; height: 100%; border: none; }
+.pdf-viewer.hidden { display: none; }
+
+.empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; color: #b2bec3;
+}
+.empty-icon-circle {
+    background: #f1f2f6; width: 80px; height: 80px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 15px;
+}
+.empty-state i { font-size: 2.5rem; color: #dfe6e9; }
+.empty-state h3 { color: #2d3436; margin-bottom: 5px; }
+
+/* --- MOBILE RESPONSIVE FOR FILES --- */
+@media screen and (max-width: 768px) {
+    .explorer-wrapper { flex-direction: column; height: calc(100vh - 80px); }
+    .sidebar-vertical { width: 100%; height: 45%; border-right: none; border-bottom: 2px solid #3498db; }
+    .preview-area { height: 55%; }
+    .sidebar-top { padding: 10px; }
+}
