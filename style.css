@@ -290,18 +290,27 @@ footer {
 
     /* --- C. YEAR FILTER (THE ENUM SWITCH) --- */
     
-    /* 1. Stick the Sidebar to the top */
+    /* 1. Stick the Sidebar to the top & FILL WIDTH */
     .sidebar-filter {
-        width: 100%;
+        /* 1. FILL WIDTH (Side-to-Side) */
+        width: calc(100% + 20px); 
+        margin-left: -10px;
+        margin-right: -10px;
+        
+        /* 2. FILL TOP GAP (The Fix) */
+        margin-top: -10px; /* Pulls the white box up to touch the Hero */
+        
+        /* 3. STICKY POSITIONING */
         position: sticky;
-        top: 80px; /* Below header */
+        top: 80px; /* Sits right under the header */
         z-index: 90;
-        padding: 10px;
+        
+        /* 4. VISUALS */
+        padding: 10px 15px; 
         background: white;
         border-bottom: 1px solid #eee;
         border-radius: 0;
         border: none;
-        margin: 0;
     }
 
     /* 2. Switch: Hide Buttons, Show Dropdown */
