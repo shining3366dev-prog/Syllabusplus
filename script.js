@@ -3,8 +3,10 @@ let allSubjects = [];
 // 1. Load Data
 function loadSubjects() {
     // Force fresh load from GitHub
-    const WIDGETS_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/course-card-widgets.csv?t=' + Date.now();
-    
+    let WIDGETS_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/course-card-widgets.csv?t=' + Date.now();
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        WIDGETS_URL = '../Syllabusplus-Database/course-card-widgets.csv'; 
+    } 
     // THIS IS THE MISSING PART THAT FIXES YOUR IMAGES
     const IMAGES_BASE_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/images/';
 
@@ -108,7 +110,17 @@ function renderGrid(selectedYear) {
         if (selectedYear === "ALL") return true;
         // Trim allows "S1 " to match "S1"
         return sub.years.some(y => y.trim() === selectedYear);
+    })
+    // --- NEW: SORTING LOGIC ---
+    .sort((a, b) => {
+        // If availability is different, put Available (true) first
+        if (a.isAvailable !== b.isAvailable) {
+            return a.isAvailable ? -1 : 1;
+        }
+        // If availability is the same, keep original CSV order
+        return 0;
     });
+    // ---------------------------
 
     if (filteredSubjects.length === 0) {
         grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#888;">No subjects found for this year.</p>';

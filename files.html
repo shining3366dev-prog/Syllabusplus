@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syllabus+ Resources</title>
     
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="./style.css">
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     
+    <!-- Your Stylesheets -->
+    <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="./files.css">
 </head>
 <body>
@@ -16,48 +21,43 @@
     <div class="main-content">
         <div class="explorer-wrapper">
             
-            <aside class="sidebar-vertical">
-                
-                <div class="sidebar-top">
-                    <div class="sidebar-info">
-                        <h2 id="subject-title">Loading...</h2>
-                        <span class="badge">Resources</span>
-                    </div>
-
-                    <div class="year-select-wrapper sidebar-spacer">
-                        <select id="file-year-select" class="year-dropdown" onchange="updateFileYear(this.value)">
-                            <option value="ALL">All Years</option>
-                            <option value="S1">S1 (Year 1)</option>
-                            <option value="S2">S2 (Year 2)</option>
-                            <option value="S3">S3 (Year 3)</option>
-                            <option value="S4">S4 (Year 4)</option>
-                            <option value="S5">S5 (Year 5)</option>
-                            <option value="S6">S6 (Year 6)</option>
-                            <option value="S7">S7 (Year 7)</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
-                    </div>
-
-                    <a href="index.html" class="btn-back">
-                        <i class="fa-solid fa-arrow-left"></i> Back to Subjects
-                    </a>
+        <aside class="sidebar-vertical">
+            
+            <div class="sidebar-top">
+                <div class="sidebar-info">
+                    <h2 id="subject-title">Loading...</h2>
+                    <span class="badge">Resources</span>
                 </div>
-                
-                <div id="file-tree" class="file-tree-content">
-                    <div class="loading-spinner">Loading files...</div>
-                </div>
-            </aside>
 
-            <main class="preview-area">
-                <div id="empty-state" class="empty-state">
-                    <div class="empty-icon-circle">
-                        <i class="fa-regular fa-file-lines"></i>
-                    </div>
-                    <h3>Select a document</h3>
-                    <p>Choose a file from the sidebar to preview it.</p>
+                <div class="year-select-wrapper sidebar-spacer">
+                    <select id="file-year-select" class="year-dropdown" onchange="updateFileYear(this.value)">
+                    </select>
+                    <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
                 </div>
-                <iframe id="pdf-viewer" class="pdf-viewer hidden" src=""></iframe>
-            </main>
+
+                <a href="index.html" class="btn-back">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Subjects
+                </a>
+            </div>
+            
+            <div id="file-tree" class="file-tree-content">
+                <div class="loading-spinner">Loading files...</div>
+            </div>
+        </aside>
+
+        <main class="preview-area">
+            <div id="empty-state" class="empty-state">
+                <div class="empty-icon-circle">
+                    <i class="fa-regular fa-file-lines"></i>
+                </div>
+                <h3>Select a document</h3>
+                <p>Choose a file from the sidebar to preview it.</p>
+            </div>
+            
+            <div id="article-viewer" class="article-viewer hidden"></div>
+            
+            <iframe id="pdf-viewer" class="pdf-viewer hidden" sandbox="allow-scripts allow-same-origin" src=""></iframe>
+        </main>
 
         </div>
     </div>
@@ -65,5 +65,17 @@
     <script src="./layout.js"></script>
     <script type="module" src="./auth.js"></script>
     <script src="./files.js"></script>
+    <script>
+        // Prevent right-click on PDF viewer to disable download
+        document.addEventListener('DOMContentLoaded', () => {
+            const pdfViewer = document.getElementById('pdf-viewer');
+            if (pdfViewer) {
+                pdfViewer.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+            }
+        });
+    </script>
 </body>
 </html>
