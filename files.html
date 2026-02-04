@@ -23,6 +23,21 @@
                         <h2 id="subject-title">Loading...</h2>
                         <span class="badge">Resources</span>
                     </div>
+
+                    <div class="year-select-wrapper sidebar-spacer">
+                        <select id="file-year-select" class="year-dropdown" onchange="updateFileYear(this.value)">
+                            <option value="ALL">All Years</option>
+                            <option value="S1">S1 (Year 1)</option>
+                            <option value="S2">S2 (Year 2)</option>
+                            <option value="S3">S3 (Year 3)</option>
+                            <option value="S4">S4 (Year 4)</option>
+                            <option value="S5">S5 (Year 5)</option>
+                            <option value="S6">S6 (Year 6)</option>
+                            <option value="S7">S7 (Year 7)</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+                    </div>
+
                     <a href="index.html" class="btn-back">
                         <i class="fa-solid fa-arrow-left"></i> Back to Subjects
                     </a>

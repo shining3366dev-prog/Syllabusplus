@@ -170,7 +170,57 @@
 }
 .empty-state i { font-size: 2.5rem; color: #dfe6e9; }
 .empty-state h3 { color: #2d3436; margin-bottom: 5px; }
+/* --- SIDEBAR DROPDOWN (Consistent Style) --- */
 
+/* Wrapper for positioning */
+.year-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Add spacing between elements in the sidebar header */
+.sidebar-spacer {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+/* The Dropdown Styling */
+.year-dropdown {
+    width: 100%;
+    padding: 8px 12px; /* Slightly compact for sidebar */
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    appearance: none;      /* Remove default arrow */
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.year-dropdown:hover {
+    border-color: #3498db;
+    background-color: #fff;
+}
+
+.year-dropdown:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Custom Arrow Icon */
+.dropdown-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f8c8d;
+    pointer-events: none; /* Let clicks pass through */
+    font-size: 0.75rem;
+}
 /* --- MOBILE RESPONSIVE FOR FILES --- */
 @media screen and (max-width: 768px) {
     .explorer-wrapper { flex-direction: column; height: calc(100vh - 80px); }
