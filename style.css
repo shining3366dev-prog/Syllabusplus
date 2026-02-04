@@ -236,117 +236,80 @@ footer {
 /* =========================================
    6. MOBILE RESPONSIVE
    ========================================= */
+/* =========================================
+   6. MOBILE RESPONSIVE (Real Phone Fix)
+   ========================================= */
 @media screen and (max-width: 768px) {
     
-    /* --- A. GENERAL LAYOUT --- */
+    /* 1. CONTAINER: Remove padding so Sidebar touches Hero */
     .app-layout {
         flex-direction: column;
-        padding: 10px;
-        gap: 15px;
+        padding: 0;       /* ZERO PADDING = NO GRAY GAPS */
+        gap: 0;           /* No gap between Filter and Grid */
         max-width: 100%;
     }
 
-    /* --- B. HEADER & HAMBURGER MENU --- */
-    .header {
-        padding: 0 15px;
-    }
-
-    /* 1. Show the Hamburger Button */
-    .menu-toggle {
-        display: block; /* Make it visible */
-        background: none;
-        border: none;
-        font-size: 1.8rem;
-        cursor: pointer;
-        color: #2c3e50;
-    }
-
-    /* 2. Style the Hidden Navbar */
-    .navbar {
-        display: none; /* Hidden by default */
-        position: absolute;
-        top: 80px;
-        left: 0;
-        width: 100%;
-        background: white;
-        flex-direction: column;
-        padding: 10px 0;
-        border-top: 1px solid #eee;
-        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-    }
-
-    /* 3. Open State (Added by JS) */
-    .navbar.nav-open {
-        display: flex;
-    }
-
-    .navbar a {
-        width: 100%;
-        text-align: center;
-        padding: 15px;
-        border-bottom: 1px solid #f9f9f9;
-        font-size: 1rem;
-    }
-
-    /* --- C. YEAR FILTER (THE ENUM SWITCH) --- */
-    
-    /* 1. Stick the Sidebar to the top & FILL WIDTH */
+    /* 2. STICKY FILTER: Fits naturally now */
     .sidebar-filter {
-        /* 1. FILL WIDTH (Side-to-Side) */
-        width: calc(100% + 20px); 
-        margin-left: -10px;
-        margin-right: -10px;
-        
-        /* 2. FILL TOP GAP (The Fix) */
-        margin-top: -10px; /* Pulls the white box up to touch the Hero */
-        
-        /* 3. STICKY POSITIONING */
+        width: 100%;
         position: sticky;
-        top: 80px; /* Sits right under the header */
+        top: 80px;        /* Sticks right under header */
         z-index: 90;
         
-        /* 4. VISUALS */
-        padding: 10px 15px; 
         background: white;
         border-bottom: 1px solid #eee;
+        padding: 10px 15px; /* Internal spacing */
+        
+        /* No negative margins needed anymore! */
+        margin: 0; 
         border-radius: 0;
         border: none;
     }
 
-    /* 2. Switch: Hide Buttons, Show Dropdown */
-    .desktop-view { display: none; }
-    .mobile-view  { display: block; position: relative; }
+    /* Hide Title / Desktop View */
     .sidebar-header-internal { display: none; }
+    .desktop-view { display: none !important; }
+    .mobile-view  { display: block !important; width: 100%; position: relative; }
+    .year-select-wrapper { width: 100%; }
 
-    /* 3. Style the Dropdown */
+    /* 3. DROPDOWN STYLE */
     .year-dropdown {
         width: 100%;
         padding: 10px 15px;
         font-size: 1rem;
         border: 1px solid #ddd;
         border-radius: 8px;
-        background: #f8f9fa;
-        appearance: none; /* Remove default arrow */
+        background-color: #f8f9fa;
+        appearance: none;
         -webkit-appearance: none;
     }
 
-    /* 4. Position the Custom Arrow */
     .dropdown-arrow {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #7f8c8d;
-        pointer-events: none;
+        position: absolute; right: 15px; top: 50%;
+        transform: translateY(-50%); color: #7f8c8d; pointer-events: none;
     }
 
-    /* --- D. GRID & CARDS --- */
+    /* 4. GRID: Add padding here since we removed it from parent */
     .course-grid {
+        display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
+        
+        /* Give cards breathing room from the edges */
+        padding: 15px 10px; 
     }
 
-    .card-image {
-        height: 100px;
+    .card-image { height: 100px; }
+
+    /* 5. HEADER & NAV (Keep existing) */
+    .header { padding: 0 15px; }
+    .menu-toggle { display: block; background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #2c3e50; }
+    
+    .navbar {
+        display: none; position: absolute; top: 80px; left: 0; width: 100%;
+        background: white; flex-direction: column; padding: 10px 0;
+        border-top: 1px solid #eee; box-shadow: 0 5px 10px rgba(0,0,0,0.1);
     }
+    .navbar.nav-open { display: flex; }
+    .navbar a { width: 100%; text-align: center; padding: 15px; border-bottom: 1px solid #f9f9f9; }
 }
