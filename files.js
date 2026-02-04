@@ -46,8 +46,11 @@ function loadFiles() {
 
     titleElement.innerText = currentSubject;
 
-    const FILES_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/subject-files.csv';
-
+    let FILES_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/subject-files.csv';
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        // local server: fetch from local folder
+        FILES_URL = './files/subject-files.csv'; // make sure this exists in your project
+    } 
     fetch(FILES_URL)
         .then(res => res.text())
         .then(csvText => {
