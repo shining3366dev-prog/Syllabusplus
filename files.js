@@ -23,7 +23,7 @@ async function loadFiles() {
     let savedYear = localStorage.getItem('selectedYear') || "ALL";
     const dropdown = document.getElementById('file-year-select');
     
-    // Safety check: if savedYear isn't an option in the new dynamic list, default to first option
+    // Safety check: if savedYear isn't an option, default to first option
     if (dropdown && !Array.from(dropdown.options).some(opt => opt.value === savedYear)) {
         savedYear = dropdown.options[0].value;
     }
@@ -35,10 +35,6 @@ async function loadFiles() {
         FILES_URL = '../Syllabusplus-Database/subject-files.csv'; 
     }
     
-    console.log('Loading files from:', FILES_URL);
-    console.log('Current subject:', currentSubject);
-    console.log('Selected year:', savedYear); 
-
     fetch(FILES_URL)
         .then(res => res.text())
         .then(csvText => {
@@ -55,22 +51,13 @@ async function loadFiles() {
                 const rowFileName = cols[3]?.trim(); 
                 const rowLink     = cols[4]?.trim();
 
-                // Debug logging
-                console.log('Processing row:', { rowSubject, rowYear, rowPath, rowFileName, rowLink });
-
                 if (rowSubject && rowSubject.toLowerCase() === currentSubject.toLowerCase()) {
-                    // Filter by Year - Only filter if savedYear is not "ALL"
-                    if (savedYear !== "ALL" && rowYear && rowYear !== savedYear) {
-                        console.log(`Skipping file: year mismatch (${rowYear} !== ${savedYear})`);
-                        return;
-                    }
+                    if (savedYear !== "ALL" && rowYear && rowYear !== savedYear) return;
 
-                    console.log('Adding file:', rowFileName);
                     totalFiles++;
                     const folders = rowPath ? rowPath.split(/[/\\]/).filter(f => f.trim()) : []; 
                     let currentLevel = fileStructure;
                     folders.forEach(folder => {
-                        if (!folder) return;
                         if (!currentLevel[folder]) currentLevel[folder] = {};
                         currentLevel = currentLevel[folder];
                     });
@@ -79,18 +66,15 @@ async function loadFiles() {
                 }
             });
 
-            console.log('Total files found:', totalFiles);
-            console.log('File structure:', fileStructure);
-
             if (totalFiles === 0) {
-                treeContainer.innerHTML = `<p style="padding:20px; font-style:italic; color:#666;">No content found for ${savedYear === 'ALL' ? 'this subject' : savedYear}.</p>`;
+                treeContainer.innerHTML = `<p style="padding:20px; font-style:italic; color:#666;">No content found for ${savedYear}.</p>`;
                 return;
             }
             treeContainer.innerHTML = renderStructure(fileStructure);
         })
         .catch(err => {
             console.error('Error loading files:', err);
-            treeContainer.innerHTML = `<p style="padding:20px; color:red;">Error loading files. Check console.</p>`;
+            treeContainer.innerHTML = `<p style="padding:20px; color:red;">Error loading files.</p>`;
         });
 }
 
@@ -108,18 +92,15 @@ async function setupYearDropdown(subjectName) {
         const dropdown = document.getElementById('file-year-select');
         if (!dropdown) return;
 
-        // Find the row for the current subject
         const subjectRow = rows.find(row => row.split(';')[0]?.trim().toLowerCase() === subjectName.toLowerCase());
         if (!subjectRow) return;
 
         const cols = subjectRow.split(';');
-        const yearsString = cols[5]?.trim(); // Column 6 = Years
+        const yearsString = cols[5]?.trim(); 
         const yearsArray = yearsString ? yearsString.split(',').map(y => y.trim()) : [];
 
-        // Clear old options
         dropdown.innerHTML = '';
 
-        // Add "All Years" only if more than 1 year exists
         if (yearsArray.length > 1) {
             const allOpt = document.createElement('option');
             allOpt.value = "ALL";
@@ -127,7 +108,6 @@ async function setupYearDropdown(subjectName) {
             dropdown.appendChild(allOpt);
         }
 
-        // Add the years that exist for this subject
         yearsArray.forEach(year => {
             const opt = document.createElement('option');
             opt.value = year.trim();
@@ -140,7 +120,6 @@ async function setupYearDropdown(subjectName) {
         if (savedYear && Array.from(dropdown.options).some(o => o.value === savedYear)) {
             dropdown.value = savedYear;
         } else {
-            // Default to "ALL" if available, otherwise first year
             if (yearsArray.length > 1) {
                 dropdown.value = "ALL";
                 localStorage.setItem('selectedYear', 'ALL');
@@ -155,12 +134,9 @@ async function setupYearDropdown(subjectName) {
     }
 }
 
-// 4. UPDATE FUNCTION - Called when user changes dropdown
+// 4. UPDATE FUNCTION
 window.updateFileYear = function(selectedYear) {
-    // Save the selection
     localStorage.setItem('selectedYear', selectedYear);
-    
-    // Reload files with new filter
     loadFiles();
 }
 
@@ -177,31 +153,24 @@ window.previewFile = function(url, element) {
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     if (element) element.classList.add('active');
 
-    // 2. PATH LOGIC: Decide where to look for JSON files
     let finalUrl = '';
     
     if (url.endsWith('.json')) {
         articleViewer.classList.remove('hidden');
-        
         if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-            // Local mode: Look in the sibling folder
             finalUrl = `../Syllabusplus-Database/articles_data/${url}`;
         } else {
-            // GitHub mode: Full URL to the Database repo
             finalUrl = `https://shining3366dev-prog.github.io/Syllabusplus-Database/articles_data/${url}`;
         }
-        
         renderArticle(finalUrl);
     } else {
-        // Mode: PDF / External Link
         pdfViewer.classList.remove('hidden');
-        // Add #toolbar=0 to hide PDF toolbar and prevent downloads
         const pdfUrl = url.includes('?') ? `${url}&toolbar=0` : `${url}#toolbar=0`;
         pdfViewer.src = pdfUrl;
     }
 }
 
-// 6. The Article Translation Engine
+// 6. Article Renderer (NOW WITH HTML SUPPORT)
 function renderArticle(jsonUrl) {
     const container = document.getElementById('article-viewer');
     container.innerHTML = '<div class="loading-spinner">Fetching Wiki Data...</div>';
@@ -227,33 +196,37 @@ function renderArticle(jsonUrl) {
 
                 data.sections.forEach((section, index) => {
                     html += `<section class="wiki-section">`;
-                    if (section.heading) html += `<h2>${section.heading}</h2>`;
-                    if (section.content) html += `<p>${section.content}</p>`;
                     
-                    // Render Math Formulas with KaTeX
+                    if (section.heading) html += `<h2>${section.heading}</h2>`;
+                    
+                    // --- A. PLAIN TEXT ---
+                    if (section.content && section.type !== 'html') html += `<p>${section.content}</p>`;
+                    
+                    // --- B. CUSTOM HTML (e.g. Scratch, YouTube) ---
+                    if (section.type === 'html') {
+                        html += `<div class="custom-html-container">${section.content}</div>`;
+                    }
+                    
+                    // --- C. MATH FORMULAS ---
                     if (section.type === 'formula' && section.latex) {
                         const mathId = `math-${index}`;
                         html += `<div class="math-card" id="${mathId}"></div>`;
                         
-                        // Render immediately after adding to DOM
                         setTimeout(() => {
                             const mathElement = document.getElementById(mathId);
                             if (mathElement && typeof katex !== 'undefined') {
                                 try {
                                     katex.render(section.latex, mathElement, {
-                                        displayMode: true,
-                                        throwOnError: false,
-                                        output: 'html'
+                                        displayMode: true, throwOnError: false, output: 'html'
                                     });
                                 } catch (err) {
-                                    console.error('KaTeX error:', err);
                                     mathElement.innerHTML = `<code style="color: red;">Error: ${section.latex}</code>`;
                                 }
                             }
                         }, 50);
                     }
                     
-                    // Render Examples in a highlighted box
+                    // --- D. EXAMPLES ---
                     if (section.type === 'example') {
                         html += `<div class="example-box"><strong>Example:</strong> ${section.content}</div>`;
                     }
@@ -268,12 +241,11 @@ function renderArticle(jsonUrl) {
                 <div class="error-msg" style="padding: 40px; text-align: center;">
                     <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; color: #e74c3c;"></i>
                     <p style="margin-top: 10px;">Failed to find article data.</p>
-                    <small style="color: #888;">Path: ${jsonUrl}</small>
                 </div>`;
         });
 }
 
-// 6b. Wait for KaTeX to load
+// 6b. Wait for KaTeX
 function waitForKaTeX(callback) {
     if (typeof katex !== 'undefined') {
         callback();
@@ -282,11 +254,9 @@ function waitForKaTeX(callback) {
     }
 }
 
-// 7. Render Tree HTML (Recursive)
+// 7. Render Tree HTML
 function renderStructure(structure) {
     let html = '';
-    
-    // A. Render FOLDERS
     for (const key in structure) {
         if (key !== '__FILES__') {
             html += `
@@ -302,8 +272,6 @@ function renderStructure(structure) {
             `;
         }
     }
-
-    // B. Render FILES
     if (structure['__FILES__']) {
         structure['__FILES__'].forEach(file => {
             html += `
@@ -314,7 +282,6 @@ function renderStructure(structure) {
             `;
         });
     }
-
     return html; 
 }
 
