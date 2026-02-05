@@ -1,10 +1,18 @@
-// 1. Helper: Get Subject from URL
+/**
+ * SYLLABUS+ FILE EXPLORER ENGINE
+ * Handles: File Tree, PDF Preview, Wiki Rendering, and Math/Scratch Widgets.
+ */
+
+// --- CONFIGURATION ---
+const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const BASE_URL = IS_LOCAL ? '../Syllabusplus-Database' : 'https://shining3366dev-prog.github.io/Syllabusplus-Database';
+
+// 1. HELPER: Get Subject from URL
 function getSubjectFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('subject');
+    return new URLSearchParams(window.location.search).get('subject');
 }
 
-// 2. Main Load Function
+// 2. MAIN LOAD FUNCTION
 async function loadFiles() {
     const currentSubject = getSubjectFromURL();
     const titleElement = document.getElementById('subject-title');
@@ -16,273 +24,266 @@ async function loadFiles() {
     }
     titleElement.innerText = currentSubject;
 
-    // STEP A: Setup the dynamic dropdown first
-    await setupYearDropdown(currentSubject);
+    // A. Setup Dropdown & Get Available Years
+    const availableYears = await setupYearDropdown(currentSubject);
 
-    // STEP B: Get the saved year (synced with Home)
+    // B. Validate Saved Year
     let savedYear = localStorage.getItem('selectedYear') || "ALL";
     const dropdown = document.getElementById('file-year-select');
-    
-    // Safety check: if savedYear isn't an option, default to first option
-    if (dropdown && !Array.from(dropdown.options).some(opt => opt.value === savedYear)) {
-        savedYear = dropdown.options[0].value;
+
+    // If saved year isn't valid for this subject, default to first available
+    if (availableYears.length > 0 && !availableYears.includes(savedYear) && savedYear !== "ALL") {
+        savedYear = availableYears.length > 1 ? "ALL" : availableYears[0];
+        localStorage.setItem('selectedYear', savedYear);
     }
     if (dropdown) dropdown.value = savedYear;
 
-    // STEP C: Determine CSV URL
-    let FILES_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/subject-files.csv';
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        FILES_URL = '../Syllabusplus-Database/subject-files.csv'; 
-    }
+    // C. Fetch Files
+    const FILES_URL = `${BASE_URL}/subject-files.csv?t=${Date.now()}`;
     
-    fetch(FILES_URL)
-        .then(res => res.text())
-        .then(csvText => {
-            const rows = csvText.split('\n').slice(1);
-            let totalFiles = 0;
-            const fileStructure = {};
-
-            rows.forEach(row => {
-                if (!row.trim()) return;
-                const cols = row.split(';');
-                const rowSubject  = cols[0]?.trim(); 
-                const rowYear     = cols[1]?.trim(); 
-                const rowPath     = cols[2]?.trim();
-                const rowFileName = cols[3]?.trim(); 
-                const rowLink     = cols[4]?.trim();
-
-                if (rowSubject && rowSubject.toLowerCase() === currentSubject.toLowerCase()) {
-                    if (savedYear !== "ALL" && rowYear && rowYear !== savedYear) return;
-
-                    totalFiles++;
-                    const folders = rowPath ? rowPath.split(/[/\\]/).filter(f => f.trim()) : []; 
-                    let currentLevel = fileStructure;
-                    folders.forEach(folder => {
-                        if (!currentLevel[folder]) currentLevel[folder] = {};
-                        currentLevel = currentLevel[folder];
-                    });
-                    if (!currentLevel['__FILES__']) currentLevel['__FILES__'] = [];
-                    currentLevel['__FILES__'].push({ name: rowFileName, link: rowLink });
-                }
-            });
-
-            if (totalFiles === 0) {
-                treeContainer.innerHTML = `<p style="padding:20px; font-style:italic; color:#666;">No content found for ${savedYear}.</p>`;
-                return;
-            }
-            treeContainer.innerHTML = renderStructure(fileStructure);
-        })
-        .catch(err => {
-            console.error('Error loading files:', err);
-            treeContainer.innerHTML = `<p style="padding:20px; color:red;">Error loading files.</p>`;
-        });
-}
-
-// 3. THE DYNAMIC DROPDOWN ENGINE
-async function setupYearDropdown(subjectName) {
-    let WIDGET_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/course-card-widgets.csv';
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        WIDGET_URL = '../Syllabusplus-Database/course-card-widgets.csv'; 
-    }
-
     try {
-        const res = await fetch(WIDGET_URL);
+        const res = await fetch(FILES_URL);
         const csvText = await res.text();
         const rows = csvText.split('\n').slice(1);
-        const dropdown = document.getElementById('file-year-select');
-        if (!dropdown) return;
+        
+        let totalFiles = 0;
+        const fileStructure = {};
 
-        const subjectRow = rows.find(row => row.split(';')[0]?.trim().toLowerCase() === subjectName.toLowerCase());
-        if (!subjectRow) return;
+        rows.forEach(row => {
+            if (!row.trim()) return;
+            const [subj, year, path, name, link] = row.split(';').map(c => c?.trim());
 
-        const cols = subjectRow.split(';');
-        const yearsString = cols[5]?.trim(); 
-        const yearsArray = yearsString ? yearsString.split(',').map(y => y.trim()) : [];
+            if (subj && subj.toLowerCase() === currentSubject.toLowerCase()) {
+                // Filter Logic
+                if (savedYear !== "ALL" && year && year !== savedYear) return;
 
-        dropdown.innerHTML = '';
-
-        if (yearsArray.length > 1) {
-            const allOpt = document.createElement('option');
-            allOpt.value = "ALL";
-            allOpt.textContent = "All Years";
-            dropdown.appendChild(allOpt);
-        }
-
-        yearsArray.forEach(year => {
-            const opt = document.createElement('option');
-            opt.value = year.trim();
-            opt.textContent = `${year.trim()} (Year ${year.replace('S','')})`;
-            dropdown.appendChild(opt);
+                totalFiles++;
+                const folders = path ? path.split(/[/\\]/).filter(f => f.trim()) : []; 
+                
+                // Build Tree
+                let current = fileStructure;
+                folders.forEach(folder => {
+                    if (!current[folder]) current[folder] = {};
+                    current = current[folder];
+                });
+                
+                if (!current['__FILES__']) current['__FILES__'] = [];
+                current['__FILES__'].push({ name, link });
+            }
         });
 
-        // Set saved year if available
-        const savedYear = localStorage.getItem('selectedYear');
-        if (savedYear && Array.from(dropdown.options).some(o => o.value === savedYear)) {
-            dropdown.value = savedYear;
+        if (totalFiles === 0) {
+            treeContainer.innerHTML = `<p style="padding:20px; font-style:italic; color:#666;">No content found for ${savedYear}.</p>`;
         } else {
-            if (yearsArray.length > 1) {
-                dropdown.value = "ALL";
-                localStorage.setItem('selectedYear', 'ALL');
-            } else if (yearsArray.length) {
-                dropdown.value = yearsArray[0];
-                localStorage.setItem('selectedYear', yearsArray[0]);
-            }
+            treeContainer.innerHTML = renderTree(fileStructure);
         }
 
     } catch (err) {
-        console.error("Dropdown Sync Error:", err);
+        console.error('File Load Error:', err);
+        treeContainer.innerHTML = `<p style="padding:20px; color:red;">Error loading files.</p>`;
     }
 }
 
-// 4. UPDATE FUNCTION
-window.updateFileYear = function(selectedYear) {
-    localStorage.setItem('selectedYear', selectedYear);
-    loadFiles();
+// 3. WIDGET: Dynamic Year Dropdown
+async function setupYearDropdown(subjectName) {
+    const WIDGET_URL = `${BASE_URL}/course-card-widgets.csv`;
+    
+    try {
+        const res = await fetch(WIDGET_URL);
+        const text = await res.text();
+        const rows = text.split('\n').slice(1);
+        const dropdown = document.getElementById('file-year-select');
+        
+        const row = rows.find(r => r.split(';')[0]?.trim().toLowerCase() === subjectName.toLowerCase());
+        if (!row || !dropdown) return [];
+
+        const years = row.split(';')[5]?.trim().split(',').map(y => y.trim()) || [];
+        
+        dropdown.innerHTML = '';
+        if (years.length > 1) {
+            dropdown.add(new Option("All Years", "ALL"));
+        }
+        years.forEach(y => dropdown.add(new Option(`${y} (Year ${y.replace('S','')})`, y)));
+
+        return years;
+    } catch (e) { console.error(e); return []; }
 }
 
-// 5. Enhanced Preview Logic
-window.previewFile = function(url, element) {
-    const pdfViewer = document.getElementById('pdf-viewer');
-    const articleViewer = document.getElementById('article-viewer');
-    const emptyState = document.getElementById('empty-state');
-    
-    emptyState.style.display = 'none';
-    pdfViewer.classList.add('hidden');
-    articleViewer.classList.add('hidden');
+window.updateFileYear = (year) => {
+    localStorage.setItem('selectedYear', year);
+    loadFiles();
+};
+
+// 4. PREVIEW LOGIC
+window.previewFile = (url, element) => {
+    const views = {
+        pdf: document.getElementById('pdf-viewer'),
+        wiki: document.getElementById('article-viewer'),
+        empty: document.getElementById('empty-state')
+    };
+
+    // Reset UI
+    Object.values(views).forEach(el => el.classList.add('hidden'));
+    views.empty.style.display = 'none';
     
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     if (element) element.classList.add('active');
 
-    let finalUrl = '';
-    
+    // Determine Type
     if (url.endsWith('.json')) {
-        articleViewer.classList.remove('hidden');
-        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-            finalUrl = `../Syllabusplus-Database/articles_data/${url}`;
-        } else {
-            finalUrl = `https://shining3366dev-prog.github.io/Syllabusplus-Database/articles_data/${url}`;
-        }
-        renderArticle(finalUrl);
+        views.wiki.classList.remove('hidden');
+        const fullUrl = url.startsWith('http') ? url : `${BASE_URL}/articles_data/${url}`;
+        renderWiki(fullUrl);
     } else {
-        pdfViewer.classList.remove('hidden');
-        const pdfUrl = url.includes('?') ? `${url}&toolbar=0` : `${url}#toolbar=0`;
-        pdfViewer.src = pdfUrl;
+        views.pdf.classList.remove('hidden');
+        views.pdf.src = `${url}#toolbar=0`;
+    }
+};
+
+// 5. WIKI RENDERER (The Engine)
+async function renderWiki(url) {
+    const container = document.getElementById('article-viewer');
+    container.innerHTML = '<div class="loading-spinner">Loading Article...</div>';
+
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Article not found");
+        const data = await res.json();
+
+        // Wait for Math Engine (KaTeX)
+        await waitForKaTeX();
+
+        const html = `
+            <div class="wiki-container">
+                <header class="wiki-header">
+                    <h1>${parseInlineMath(data.title)}</h1>
+                    <p class="wiki-meta"><i class="fa-solid fa-clock-rotate-left"></i> Updated: ${data.lastUpdated}</p>
+                </header>
+                <div class="wiki-body">
+                    ${data.sections.map(renderSection).join('')}
+                </div>
+            </div>`;
+
+        container.innerHTML = html;
+
+        // Post-Render: Render Block Math
+        data.sections.forEach((s, i) => {
+            if (s.type === 'formula' && s.latex) renderBlockMath(s.latex, `math-${i}`);
+        });
+
+    } catch (err) {
+        container.innerHTML = `<div class="error-msg">⚠️ ${err.message}</div>`;
     }
 }
 
-// 6. Article Renderer (NOW WITH HTML SUPPORT)
-function renderArticle(jsonUrl) {
-    const container = document.getElementById('article-viewer');
-    container.innerHTML = '<div class="loading-spinner">Fetching Wiki Data...</div>';
+// 6. SECTION RENDERER (Switch Logic)
+function renderSection(s, index) {
+    const content = s.content ? parseInlineMath(s.content) : '';
+    let html = '<section class="wiki-section">';
+    
+    if (s.heading) html += `<h2>${s.heading}</h2>`;
 
-    fetch(jsonUrl)
-        .then(res => {
-            if (!res.ok) throw new Error("Article data not found");
-            return res.json();
-        })
-        .then(data => {
-            // Wait for KaTeX to be available before rendering
-            waitForKaTeX(() => {
-                let html = `
-                    <div class="wiki-container">
-                        <header class="wiki-header">
-                            <h1>${data.title}</h1>
-                            <p class="wiki-meta">
-                                <i class="fa-solid fa-clock-rotate-left"></i> Last updated: ${data.lastUpdated}
-                            </p>
-                        </header>
-                        <div class="wiki-body">
-                `;
+    switch (s.type) {
+        case 'intro':
+        case 'text':
+            html += `<p>${content}</p>`;
+            break;
 
-                data.sections.forEach((section, index) => {
-                    html += `<section class="wiki-section">`;
-                    
-                    if (section.heading) html += `<h2>${section.heading}</h2>`;
-                    
-                    // --- A. PLAIN TEXT ---
-                    if (section.content && section.type !== 'html') html += `<p>${section.content}</p>`;
-                    
-                    // --- B. CUSTOM HTML (e.g. Scratch, YouTube) ---
-                    if (section.type === 'html') {
-                        html += `<div class="custom-html-container">${section.content}</div>`;
-                    }
-                    
-                    // --- C. MATH FORMULAS ---
-                    if (section.type === 'formula' && section.latex) {
-                        const mathId = `math-${index}`;
-                        html += `<div class="math-card" id="${mathId}"></div>`;
-                        
-                        setTimeout(() => {
-                            const mathElement = document.getElementById(mathId);
-                            if (mathElement && typeof katex !== 'undefined') {
-                                try {
-                                    katex.render(section.latex, mathElement, {
-                                        displayMode: true, throwOnError: false, output: 'html'
-                                    });
-                                } catch (err) {
-                                    mathElement.innerHTML = `<code style="color: red;">Error: ${section.latex}</code>`;
-                                }
-                            }
-                        }, 50);
-                    }
-                    
-                    // --- D. EXAMPLES ---
-                    if (section.type === 'example') {
-                        html += `<div class="example-box"><strong>Example:</strong> ${section.content}</div>`;
-                    }
-                    html += `</section>`;
-                });
+        case 'html':
+            html += `<div class="custom-html">${s.content}</div>`;
+            break;
 
-                container.innerHTML = html + `</div></div>`;
-            });
-        })
-        .catch(err => {
-            container.innerHTML = `
-                <div class="error-msg" style="padding: 40px; text-align: center;">
-                    <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; color: #e74c3c;"></i>
-                    <p style="margin-top: 10px;">Failed to find article data.</p>
+        case 'formula':
+            if (s.content) html += `<p>${content}</p>`;
+            html += `<div class="math-card" id="math-${index}"></div>`;
+            break;
+
+        case 'example':
+            html += `<div class="example-box"><strong>Example:</strong> ${content}</div>`;
+            break;
+
+        case 'scratch':
+            const match = s.url.match(/projects\/(\d+)/);
+            const id = match ? match[1] : s.url;
+            const title = s.widgetTitle || "Interactive Demo";
+            const desc = s.description || "Click the Green Flag to start.";
+            
+            html += `
+                <div class="scratch-container">
+                    <div class="scratch-frame-wrapper">
+                        <iframe src="https://scratch.mit.edu/projects/${id}/embed" 
+                                allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+                    </div>
+                    <div class="scratch-sidebar">
+                        <h3>${title}</h3>
+                        <p>${desc}</p>
+                        <a href="https://scratch.mit.edu/projects/${id}/" target="_blank" class="btn-scratch">
+                            <i class="fa-solid fa-code-branch"></i> View & Remix
+                        </a>
+                    </div>
+                </div>`;
+            break;
+    }
+
+    html += '</section>';
+    return html;
+}
+
+// 7. MATH UTILITIES
+function parseInlineMath(text) {
+    if (!text) return '';
+    // Replaces $...$ with KaTeX HTML
+    return text.replace(/\$([^$]+)\$/g, (match, tex) => {
+        try {
+            return katex.renderToString(tex, { throwOnError: false, displayMode: false });
+        } catch { return match; }
+    });
+}
+
+function renderBlockMath(tex, elementId) {
+    const el = document.getElementById(elementId);
+    if (el && window.katex) {
+        try {
+            katex.render(tex, el, { displayMode: true, throwOnError: false });
+        } catch (e) {
+            el.innerHTML = `<code style="color:red">${tex}</code>`;
+        }
+    }
+}
+
+function waitForKaTeX() {
+    return new Promise(resolve => {
+        if (window.katex) return resolve();
+        const check = setInterval(() => {
+            if (window.katex) { clearInterval(check); resolve(); }
+        }, 100);
+    });
+}
+
+// 8. TREE RENDERER (Recursive)
+function renderTree(structure) {
+    let html = '';
+    
+    // Folders
+    Object.keys(structure).forEach(key => {
+        if (key === '__FILES__') return;
+        html += `
+            <details class="folder-details" open>
+                <summary class="folder-summary"><i class="folder-icon"></i><span>${key}</span></summary>
+                <div class="folder-content">${renderTree(structure[key])}</div>
+            </details>`;
+    });
+
+    // Files
+    if (structure['__FILES__']) {
+        structure['__FILES__'].forEach(f => {
+            html += `
+                <div class="file-item" onclick="previewFile('${f.link}', this)">
+                    <i class="fa-regular fa-file-pdf file-icon"></i><span>${f.name}</span>
                 </div>`;
         });
-}
-
-// 6b. Wait for KaTeX
-function waitForKaTeX(callback) {
-    if (typeof katex !== 'undefined') {
-        callback();
-    } else {
-        setTimeout(() => waitForKaTeX(callback), 100);
     }
-}
-
-// 7. Render Tree HTML
-function renderStructure(structure) {
-    let html = '';
-    for (const key in structure) {
-        if (key !== '__FILES__') {
-            html += `
-                <details class="folder-details" open>
-                    <summary class="folder-summary">
-                        <i class="folder-icon"></i> 
-                        <span>${key}</span>
-                    </summary>
-                    <div class="folder-content">
-                        ${renderStructure(structure[key])}
-                    </div>
-                </details>
-            `;
-        }
-    }
-    if (structure['__FILES__']) {
-        structure['__FILES__'].forEach(file => {
-            html += `
-                <div class="file-item" onclick="previewFile('${file.link}', this)">
-                    <i class="fa-regular fa-file-pdf file-icon"></i>
-                    <span>${file.name}</span>
-                </div>
-            `;
-        });
-    }
-    return html; 
+    return html;
 }
 
 document.addEventListener('DOMContentLoaded', loadFiles);

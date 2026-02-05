@@ -343,7 +343,122 @@
     color: #7f8c8d;
     font-size: 1.1rem;
 }
+/* --- SCRATCH PROJECT STYLING (Side-by-Side) --- */
+.scratch-container {
+    max-width: 800px; /* Wider to fit side content */
+    margin: 30px auto;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid #eee;
+    
+    /* THE MAGIC SWITCH: Side-by-side layout */
+    display: flex;
+    flex-direction: row; 
+    align-items: stretch; /* Make right side equal height */
+}
 
+/* Left Side: The Game */
+.scratch-frame-wrapper {
+    flex: 0 0 65%; /* Take up 65% of the width */
+    position: relative;
+    background: #000;
+    /* Aspect Ratio Hack for iframe inside flex child */
+    min-height: 400px; 
+}
+
+.scratch-frame-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Right Side: The Info & Button */
+.scratch-sidebar {
+    flex: 1; /* Take up remaining space */
+    background-color: #f8f9fa;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically */
+    align-items: center;
+    border-left: 1px solid #eee;
+    text-align: center;
+}
+
+.scratch-sidebar h3 {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.scratch-sidebar p {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.btn-scratch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #ffab19; /* Scratch Orange */
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px; /* Slightly squarer for side look */
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 6px rgba(255, 171, 25, 0.3);
+}
+
+.btn-scratch:hover {
+    background-color: #e69100;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 171, 25, 0.4);
+    color: white;
+}
+
+/* --- MOBILE RESPONSIVE (Snap back to column) --- */
+@media screen and (max-width: 768px) {
+    .scratch-container {
+        flex-direction: column; /* Stack vertically on phones */
+        max-width: 100%;
+    }
+    
+    .scratch-frame-wrapper {
+        flex: none;
+        width: 100%;
+        padding-bottom: 80%; /* Maintain aspect ratio */
+        min-height: auto;
+    }
+    
+    .scratch-sidebar {
+        border-left: none;
+        border-top: 1px solid #eee;
+        padding: 20px;
+        flex-direction: row; /* Horizontal button layout on mobile */
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .scratch-sidebar h3, .scratch-sidebar p {
+        display: none; /* Hide text on mobile to save space */
+    }
+    
+    .btn-scratch {
+        width: 100%;
+        justify-content: center;
+    }
+}
 /* --- MOBILE RESPONSIVE FOR FILES --- */
 @media screen and (max-width: 768px) {
     .explorer-wrapper { flex-direction: column; height: calc(100vh - 80px); }
