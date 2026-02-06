@@ -1,7 +1,6 @@
 /* =========================================
    FILES.CSS - File Explorer & PDF Viewer
    ========================================= */
-
 /* --- LAYOUT WRAPPER (Updated for Natural Scroll) --- */
 .explorer-wrapper {
     display: flex;
@@ -730,8 +729,9 @@
 
 .article-navigation {
     display: flex;
-    justify-content: space-between;
-    gap: 20px;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 40px;
 }
 
 .nav-spacer {
@@ -797,12 +797,7 @@
 .nav-btn-center {
     display: none;
 }
-.article-navigation {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 40px;
-}
+
 
 .nav-top-row {
     display: flex;

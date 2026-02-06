@@ -132,20 +132,27 @@ window.previewFile = (url, element) => {
         wiki: document.getElementById('article-viewer'),
         empty: document.getElementById('empty-state')
     };
+    
+    // 1. INSTANT RESET (No laggy smooth scroll)
+    // This makes the transition feel snappy and professional
+    window.scrollTo(0, 0); 
+    views.wiki.scrollTop = 0; 
+
+    // 2. Clear previous content visibility
     Object.values(views).forEach(el => el.classList.add('hidden'));
     views.empty.style.display = 'none';
 
-    // Highlight Sidebar
+    // 3. Highlight Sidebar
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     if (!element) element = document.querySelector(`.file-item[data-link="${url}"]`);
     if (element) element.classList.add('active');
 
-    // --- NEW: MOBILE VIEW SWITCH ---
+    // 4. Mobile Mode Switch
     if (window.innerWidth <= 768) {
         document.querySelector('.explorer-wrapper').classList.add('preview-mode');
     }
 
-    // ... existing url logic (json vs pdf) ...
+    // 5. Load Content
     if (url.endsWith('.json')) {
         views.wiki.classList.remove('hidden');
         renderWiki(`${BASE_URL}/articles_data/${url}`, url);
@@ -155,13 +162,13 @@ window.previewFile = (url, element) => {
     }
 };
 window.closePreview = () => {
+    window.scrollTo(0, 0); // Reset scroll when going back to list
     document.querySelector('.explorer-wrapper').classList.remove('preview-mode');
 };
 // 5. WIKI RENDERER
 async function renderWiki(url, originalFilename) {
     const container = document.getElementById('article-viewer');
     container.innerHTML = '<div class="loading-spinner">Loading Article...</div>';
-    container.scrollTop = 0;
 
     try {
         const res = await fetch(url);
@@ -173,63 +180,43 @@ async function renderWiki(url, originalFilename) {
         const prevFile = currentIndex > 0 ? window.currentFilesList[currentIndex - 1] : null;
         const nextFile = currentIndex < window.currentFilesList.length - 1 ? window.currentFilesList[currentIndex + 1] : null;
 
-        // NAVIGATION AREA
+        // Build Nav Buttons
         let navHtml = `<div class="article-navigation">`;
-        
-        // Top Row: Previous and Next
         navHtml += `<div class="nav-top-row">`;
+        
         if (prevFile) {
-            navHtml += `
-                <button class="nav-btn prev" onclick="previewFile('${prevFile.link}')">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <div class="nav-info"><span>Previous</span><span class="nav-title">${prevFile.name}</span></div>
-                </button>`;
-        } else {
-            navHtml += `<div class="nav-spacer"></div>`;
-        }
+            navHtml += `<button class="nav-btn prev" onclick="previewFile('${prevFile.link}')"><i class="fa-solid fa-arrow-left"></i> <div class="nav-info"><span>Previous</span><span class="nav-title">${prevFile.name}</span></div></button>`;
+        } else { navHtml += `<div class="nav-spacer"></div>`; }
 
         if (nextFile) {
-            navHtml += `
-                <button class="nav-btn next" onclick="previewFile('${nextFile.link}')">
-                    <div class="nav-info"><span>Next</span><span class="nav-title">${nextFile.name}</span></div>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>`;
-        } else {
-            navHtml += `<div class="nav-spacer"></div>`;
-        }
-        navHtml += `</div>`; // End top row
+            navHtml += `<button class="nav-btn next" onclick="previewFile('${nextFile.link}')"><div class="nav-info"><span>Next</span><span class="nav-title">${nextFile.name}</span></div><i class="fa-solid fa-arrow-right"></i></button>`;
+        } else { navHtml += `<div class="nav-spacer"></div>`; }
+        
+        navHtml += `</div>`; // Close nav-top-row
 
-        // THE DUPLICATE: This is exactly what you asked for
+        // DUPLICATE BACK TO EXPLORER (Visible on mobile only via CSS)
         navHtml += `
-            <button class="nav-btn bottom-explorer-btn" onclick="closePreview()">
+            <button class="nav-btn bottom-explorer-btn mobile-only" onclick="closePreview()">
                 <i class="fa-solid fa-chevron-left"></i>
-                <div class="nav-info">
-                    <span>Back to List</span>
-                    <span class="nav-title">Explorer Menu</span>
-                </div>
+                <div class="nav-info"><span>Back to List</span><span class="nav-title">Explorer Menu</span></div>
             </button>`;
 
-        navHtml += `</div>`; // End navigation
+        navHtml += `</div>`;
 
-        const html = `
+        container.innerHTML = `
             <div class="wiki-container">
                 <header class="wiki-header">
                     <h1>${parseInlineMath(data.title)}</h1>
                     <p class="wiki-meta"><i class="fa-solid fa-clock-rotate-left"></i> Updated: ${data.lastUpdated}</p>
                 </header>
-                <div class="wiki-body">
-                    ${data.sections.map((s, index) => renderSection(s, index)).join('')}
-                </div>
+                <div class="wiki-body">${data.sections.map((s, index) => renderSection(s, index)).join('')}</div>
                 <footer class="wiki-footer-area">${navHtml}</footer>
             </div>`;
 
-        container.innerHTML = html;
         data.sections.forEach((s, i) => { if (s.type === 'formula' && s.latex) renderBlockMath(s.latex, `math-${i}`); });
         container.querySelectorAll('.quiz-window').forEach(el => window.renderQuizQuestion && window.renderQuizQuestion(el.id));
 
-    } catch (err) {
-        container.innerHTML = `<div class="error-msg">⚠️ ${err.message}</div>`;
-    }
+    } catch (err) { container.innerHTML = `<div class="error-msg">⚠️ ${err.message}</div>`; }
 }
 
 // 6. SECTION RENDERER
@@ -297,24 +284,16 @@ window.renderQuizQuestion = function(quizId) {
     const q = data.questions[data.currentQ];
     const body = document.getElementById(`${quizId}-body`);
     const nextBtn = document.querySelector(`#${quizId} .btn-next`);
-    const progressText = document.querySelector(`#${quizId} .quiz-progress-text`);
-    const progressFill = document.querySelector(`#${quizId} .quiz-progress-fill`);
-
-    progressText.innerText = `Question ${data.currentQ + 1} of ${data.total}`;
-    progressFill.style.width = `${((data.currentQ) / data.total) * 100}%`;
-
-    // --- NEW: Reset button to 'Skip' state ---
-    nextBtn.classList.remove('hidden'); 
+    
+    // Initial State: Button says "Skip"
+    nextBtn.classList.remove('hidden');
     nextBtn.innerHTML = `Skip Question <i class="fa-solid fa-forward"></i>`;
-    nextBtn.classList.add('btn-skip'); // Optional class for styling
-
-    let mixedOptions = q.options.map((opt, i) => ({ text: opt, isCorrect: i === q.correct }));
-    mixedOptions.sort(() => Math.random() - 0.5);
+    nextBtn.dataset.answered = "false";
 
     body.innerHTML = `
         <h3 class="quiz-question-text">${parseInlineMath(q.question)}</h3>
         <div class="quiz-options-grid">
-            ${mixedOptions.map(opt => `<button class="quiz-option-btn" onclick="handleAnswer('${quizId}', this, ${opt.isCorrect})">${parseInlineMath(opt.text)}</button>`).join('')}
+            ${q.options.map((opt, i) => `<button class="quiz-option-btn" onclick="handleAnswer('${quizId}', this, ${i === q.correct})">${parseInlineMath(opt)}</button>`).join('')}
         </div>
         <div class="quiz-feedback-msg"></div>`;
 };
@@ -323,38 +302,33 @@ window.handleAnswer = function(quizId, btn, isCorrect) {
     const data = window.quizzes[quizId];
     const container = document.getElementById(quizId);
     const allBtns = container.querySelectorAll('.quiz-option-btn');
-    const feedback = container.querySelector('.quiz-feedback-msg');
     const nextBtn = container.querySelector('.btn-next');
+    
+    const correctIdx = data.questions[data.currentQ].correct;
+    const correctBtn = allBtns[correctIdx];
 
-    // Identify the correct text for highlighting
-    const currentQuestion = data.questions[data.currentQ];
-    const correctText = currentQuestion.options[currentQuestion.correct];
-
+    // Mute everything initially
     allBtns.forEach(b => {
         b.disabled = true;
-        
-        // Highlight logic
-        if (b.innerText.trim() === correctText.trim()) {
-            b.classList.add('correct');
-            b.classList.remove('muted');
-        } else if (b === btn && !isCorrect) {
-            b.classList.add('wrong');
-        } else {
-            b.classList.add('muted');
-        }
+        b.classList.add('muted');
     });
 
     if (isCorrect) {
         data.score++;
+        btn.classList.add('correct');
+        btn.classList.remove('muted'); // REMOVE MUTED SO COLOR SHOWS
         playSound('correct');
-        feedback.innerHTML = `<span class="text-correct"><i class="fa-solid fa-circle-check"></i> Correct!</span>`;
     } else {
+        btn.classList.add('wrong');
+        btn.classList.remove('muted'); // REMOVE MUTED SO RED SHOWS
+        
+        correctBtn.classList.add('correct'); 
+        correctBtn.classList.remove('muted'); // REMOVE MUTED SO GREEN SHOWS
         playSound('wrong');
-        feedback.innerHTML = `<span class="text-wrong"><i class="fa-solid fa-circle-xmark"></i> Incorrect. The correct answer is highlighted.</span>`;
     }
 
-    // --- NEW: Change 'Skip' to 'Next' ---
-    nextBtn.classList.remove('btn-skip');
+    // Change Skip to Next
+    nextBtn.dataset.answered = "true";
     if (data.currentQ === data.total - 1) {
         nextBtn.innerHTML = `See Results <i class="fa-solid fa-trophy"></i>`;
     } else {
