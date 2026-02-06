@@ -2,24 +2,36 @@
    FILES.CSS - File Explorer & PDF Viewer
    ========================================= */
 
-/* --- LAYOUT WRAPPER --- */
+/* --- LAYOUT WRAPPER (Updated for Natural Scroll) --- */
 .explorer-wrapper {
     display: flex;
-    /* Height calculation: 100vh - Header(80px) - Footer(approx 80px) */
-    height: calc(100vh - 160px); 
+    /* REMOVE height: calc(...) */
+    min-height: 80vh; /* Ensures it looks good on empty pages */
     background-color: #fff;
     border-top: 1px solid #ddd;
-    overflow: hidden; /* Prevents double scrollbars */
+    /* REMOVE overflow: hidden */
+    overflow: visible; 
+}
+
+/* Ensure the main content doesn't restrict scrolling */
+.main-content {
+    flex: 1;
+    display: block; /* Ensure it flows naturally */
 }
 
 /* --- LEFT SIDEBAR (The Tree) --- */
 .sidebar-vertical {
-    width: 300px; /* Fixed width */
+    width: 300px;
     background-color: #f8f9fa;
     border-right: 1px solid #e0e0e0;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    
+    /* ADD THESE: Keeps the menu visible while reading long articles */
+    position: sticky;
+    top: 80px; /* Aligns with your header height */
+    height: calc(100vh - 80px); 
 }
 
 /* Sidebar Header */
@@ -60,112 +72,169 @@
 .btn-back i { margin-right: 8px; }
 .btn-back:hover { color: #3498db; }
 
-/* --- MINI YEAR FILTER (Specific to Files Sidebar) --- */
-.sidebar-years {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-    background-color: #fff;
-}
-
-.sidebar-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #95a5a6;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-}
-
-.mini-year-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
-}
-
-.mini-year-btn {
-    padding: 6px 0;
-    font-size: 0.8rem;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    color: #555;
-    transition: background 0.2s;
-}
-
-.mini-year-btn:hover { background-color: #e2e6ea; }
-.mini-year-btn.active { background-color: #3498db; color: white; border-color: #3498db; }
-
 /* --- FILE TREE STRUCTURE --- */
 .file-tree-content {
     flex: 1;
     overflow-y: auto;
-    padding: 10px 0;
+    padding: 20px 10px;
 }
 
-.folder-content {
-    margin-left: 14px;
-    padding-left: 10px;
-    border-left: 1px solid #ccc; /* Vertical Guide Line */
-    display: flex; flex-direction: column;
+/* Folders */
+.folder-details {
+    margin-bottom: 5px;
 }
 
-.folder-summary, .file-item {
-    padding: 8px 15px;
+.folder-summary {
+    list-style: none;
+    padding: 8px 5px;
     cursor: pointer;
     display: flex;
     align-items: center;
     font-size: 0.9rem;
-    color: #444;
-    transition: background 0.1s;
-    border-radius: 0 4px 4px 0;
+    font-weight: 700;
+    color: #2c3e50;
+    transition: color 0.2s;
 }
 
-.folder-summary:hover, .file-item:hover { background-color: #e3e6ea; }
+.folder-summary:hover {
+    color: #3498db;
+}
 
-/* Custom Icons */
-.folder-icon { color: #f39c12; margin-right: 8px; width: 20px; text-align: center; }
-.file-icon   { color: #e74c3c; margin-right: 8px; width: 20px; text-align: center; }
+.folder-summary::-webkit-details-marker { display: none; }
+
+.folder-arrow {
+    margin-right: 10px;
+    width: 15px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #95a5a6;
+}
+
+.folder-details:not([open]) .folder-arrow::before {
+    content: "\f078";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.folder-details[open] .folder-arrow::before {
+    content: "\f077";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.folder-name {
+    flex: 1;
+}
+
+/* Folder Content Container */
+.folder-content {
+    margin-left: 12px;
+    padding-left: 30px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+/* 1. Remove the line from the parent container */
+.folder-content::before {
+    display: none; 
+}
+
+/* 2. Set up the file item to hold its own lines */
+.file-item {
+    position: relative;
+    padding: 10px 0;
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+}
+
+/* 3. Draw the UP segment and DOWN segment */
+.file-item::before,
+.file-item::after {
+    content: '';
+    position: absolute;
+    left: -20px; /* Align with your node-icon center */
+    width: 2px;
+    background-color: #e0e0e0;
+    z-index: 1;
+}
+
+/* UP Line: from top of item to middle */
+.file-item::before {
+    top: 0;
+    height: 50%;
+}
+
+/* DOWN Line: from middle to bottom */
+.file-item::after {
+    top: 50%;
+    height: 50%;
+}
+
+/* 4. SMART LOGIC: Remove segments at the ends */
+
+/* If it's the first file, it doesn't need a line going UP */
+.file-item.is-first::before {
+    visibility: hidden;
+}
+
+/* If it's the last file, it doesn't need a line going DOWN */
+.file-item.is-last::after {
+    visibility: hidden;
+}
+
+/* If it's the only file, it needs NO lines */
+.file-item.is-only::before,
+.file-item.is-only::after {
+    visibility: hidden;
+}
+
+/* 5. Ensure node-icon is above these lines */
+.node-icon {
+    position: absolute;
+    left: -27px;
+    z-index: 2; /* Sits on top of the connection point */
+    background: #f8f9fa; /* Matches sidebar bg */
+}
+.file-name {
+    margin-left: 5px;
+}
+
+.file-item:hover { 
+    color: #34495e; 
+}
+.file-item:hover .node-icon { 
+    color: #95a5a6; 
+    transform: scale(1.1); 
+}
 
 .file-item.active {
-    background-color: #dbeeff;
-    color: #2980b9;
+    color: #2c3e50;
     font-weight: 600;
+    background-color: rgba(52, 152, 219, 0.05);
+    border-radius: 4px;
 }
 
-/* Hide Default Arrow & Use Custom One */
-.folder-summary::-webkit-details-marker { display: none; }
-.folder-summary { list-style: none; }
-
-/* FontAwesome Folder Icons Logic */
-.folder-details:not([open]) .folder-icon::before {
-    content: "\f07b"; /* fa-folder */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 400;
-}
-.folder-details[open] .folder-icon::before {
-    content: "\f07c"; /* fa-folder-open */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 400;
+.file-item.active .node-icon {
+    color: #3498db;
+    transform: scale(1.15);
 }
 
 /* --- RIGHT PREVIEW AREA --- */
 .preview-area {
     flex: 1;
     background-color: #fff;
-    position: relative;
-    display: flex;
-    flex-direction: column;
+    /* REMOVE height/overflow constraints */
+    min-height: 100%;
 }
 
 .pdf-viewer { 
     width: 100%; 
     height: 100%; 
     border: none;
-    pointer-events: auto; /* Allow scrolling but... */
-}
-
-/* Prevent right-click on PDF viewer */
-.pdf-viewer {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -175,40 +244,47 @@
 .pdf-viewer.hidden { display: none; }
 
 .empty-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; color: #b2bec3;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    height: 100%; 
+    color: #b2bec3;
 }
 .empty-icon-circle {
-    background: #f1f2f6; width: 80px; height: 80px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; margin-bottom: 15px;
+    background: #f1f2f6; 
+    width: 80px; 
+    height: 80px; 
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin-bottom: 15px;
 }
 .empty-state i { font-size: 2.5rem; color: #dfe6e9; }
 .empty-state h3 { color: #2d3436; margin-bottom: 5px; }
-/* --- SIDEBAR DROPDOWN (Consistent Style) --- */
 
-/* Wrapper for positioning */
+/* --- SIDEBAR DROPDOWN --- */
 .year-select-wrapper {
     position: relative;
     width: 100%;
 }
 
-/* Add spacing between elements in the sidebar header */
 .sidebar-spacer {
     margin-top: 15px;
     margin-bottom: 10px;
 }
 
-/* The Dropdown Styling */
 .year-dropdown {
     width: 100%;
-    padding: 8px 12px; /* Slightly compact for sidebar */
+    padding: 8px 12px;
     font-size: 0.9rem;
     font-weight: 500;
     color: #333;
     background-color: #f8f9fa;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
-    appearance: none;      /* Remove default arrow */
+    appearance: none;
     -webkit-appearance: none;
     cursor: pointer;
     transition: all 0.2s;
@@ -225,21 +301,18 @@
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-/* Custom Arrow Icon */
 .dropdown-arrow {
     position: absolute;
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
     color: #7f8c8d;
-    pointer-events: none; /* Let clicks pass through */
+    pointer-events: none;
     font-size: 0.75rem;
 }
 
-/* --- ARTICLE VIEWER PADDING UPDATES --- */
-
+/* --- ARTICLE VIEWER --- */
 .article-viewer {
-    /* This creates the big "stage" padding around the whole document */
     padding: 60px 50px; 
     overflow-y: auto;
     background: #fff;
@@ -250,12 +323,6 @@
     display: none;
 }
 
-.article-content {
-    max-width: 950px; /* Slightly wider for better formula fit */
-    margin: 0 auto;
-    /* Removed redundant internal padding */
-}
-
 .wiki-container {
     max-width: 950px;
     margin: 0 auto;
@@ -263,7 +330,7 @@
 
 .wiki-header {
     border-bottom: 1px solid #eee;
-    margin-bottom: 45px; /* More space before the first section */
+    margin-bottom: 45px;
     padding-bottom: 25px;
 }
 
@@ -271,7 +338,7 @@
     font-size: 2.2rem;
     color: #2c3e50;
     margin-bottom: 12px;
-    margin-top: 0; /* Ensures it doesn't push down weirdly */
+    margin-top: 0;
     font-family: 'Segoe UI', serif;
 }
 
@@ -289,37 +356,35 @@
 }
 
 .wiki-section {
-    margin-bottom: 50px; /* Added more space between major sections */
+    margin-bottom: 50px;
 }
 
 .wiki-section h2 {
     font-size: 1.5rem;
     color: #2c3e50;
-    margin-bottom: 20px; /* More space under the subheading */
+    margin-bottom: 20px;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
 }
 
 .wiki-section p {
     font-size: 1.05rem;
-    line-height: 1.8; /* Increased line spacing for readability */
+    line-height: 1.8;
     color: #333;
     margin-bottom: 20px;
 }
 
-/* Math Formula Card - Updated for KaTeX */
 .math-card {
     background: #f8f9fa;
-    padding: 30px; /* More internal padding for the formula */
+    padding: 30px;
     text-align: center;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
-    font-size: 1.3rem; /* Slightly larger for better readability */
-    margin: 30px 0; /* More space above and below the box */
-    overflow-x: auto; /* Allow horizontal scrolling for long formulas */
+    font-size: 1.3rem;
+    margin: 30px 0;
+    overflow-x: auto;
 }
 
-/* KaTeX specific styling */
 .math-card .katex {
     font-size: 1.3em;
 }
@@ -331,7 +396,7 @@
 .example-box {
     background: #e3f2fd;
     border-left: 5px solid #3498db;
-    padding: 20px 25px; /* More room inside the example */
+    padding: 20px 25px;
     border-radius: 4px;
     color: #2c3e50;
     margin-top: 15px;
@@ -343,28 +408,25 @@
     color: #7f8c8d;
     font-size: 1.1rem;
 }
-/* --- SCRATCH PROJECT STYLING (Side-by-Side) --- */
+
+/* --- SCRATCH PROJECT --- */
 .scratch-container {
-    max-width: 800px; /* Wider to fit side content */
+    max-width: 800px;
     margin: 30px auto;
     background: #fff;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     border: 1px solid #eee;
-    
-    /* THE MAGIC SWITCH: Side-by-side layout */
     display: flex;
     flex-direction: row; 
-    align-items: stretch; /* Make right side equal height */
+    align-items: stretch;
 }
 
-/* Left Side: The Game */
 .scratch-frame-wrapper {
-    flex: 0 0 65%; /* Take up 65% of the width */
+    flex: 0 0 65%;
     position: relative;
     background: #ffffff;
-    /* Aspect Ratio Hack for iframe inside flex child */
     min-height: 400px; 
 }
 
@@ -377,14 +439,13 @@
     border: none;
 }
 
-/* Right Side: The Info & Button */
 .scratch-sidebar {
-    flex: 1; /* Take up remaining space */
+    flex: 1;
     background-color: #f8f9fa;
     padding: 25px;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
+    justify-content: center;
     align-items: center;
     border-left: 1px solid #eee;
     text-align: center;
@@ -408,10 +469,10 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background-color: #ffab19; /* Scratch Orange */
+    background-color: #ffab19;
     color: white;
     padding: 12px 24px;
-    border-radius: 8px; /* Slightly squarer for side look */
+    border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
@@ -425,185 +486,246 @@
     box-shadow: 0 6px 12px rgba(255, 171, 25, 0.4);
     color: white;
 }
-/* --- MODERN QUIZ WINDOW --- */
+
+/* --- QUIZ WINDOW: SLEEK & STABLE --- */
 .quiz-window {
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    overflow: hidden;
-    max-width: 700px;
-    margin: 30px auto;
+    max-width: 650px;
+    margin: 20px auto;
     border: 1px solid #eee;
     font-family: 'Segoe UI', sans-serif;
+    
+    /* THE STABLE HEIGHT: Locked to 460px to prevent any layout shifting */
+    height: 460px; 
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
-/* Header & Progress */
+/* 1. Slim Header */
 .quiz-header {
     background: #f8f9fa;
-    padding: 15px 25px;
+    padding: 12px 20px;
     border-bottom: 1px solid #eee;
+    flex-shrink: 0;
 }
 
 .quiz-progress-text {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #7f8c8d;
-    margin-bottom: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #95a5a6;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    letter-spacing: 0.8px;
 }
 
 .quiz-progress-track {
-    background: #e0e0e0;
-    height: 6px;
+    background: #e9ecef;
+    height: 4px; /* Thinner track */
     border-radius: 10px;
-    overflow: hidden;
 }
 
 .quiz-progress-fill {
     background: #3498db;
     height: 100%;
-    border-radius: 10px;
-    transition: width 0.4s ease;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Body */
+/* 2. Optimized Body */
 .quiz-body {
-    padding: 30px 25px;
-    min-height: 250px; /* Prevent jumping */
+    padding: 25px;
+    flex: 1; /* Takes remaining space between header and footer */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
 }
 
 .quiz-question-text {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     color: #2c3e50;
-    margin-bottom: 25px;
+    margin-bottom: 18px;
     font-weight: 600;
+    line-height: 1.4;
+    min-height: 3.2rem;
 }
 
+/* THE RATIO FIX: 2 columns makes the UI feel wider and less "tall/thick" */
 .quiz-options-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 .quiz-option-btn {
-    padding: 15px 20px;
+    padding: 12px 15px;
     text-align: left;
     background: #fff;
-    border: 2px solid #ecf0f1;
+    border: 1.5px solid #edf2f7;
     border-radius: 8px;
-    font-size: 1rem;
-    color: #34495e;
+    font-size: 0.9rem;
+    color: #4a5568;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .quiz-option-btn:hover:not(:disabled) {
     border-color: #3498db;
-    background: #f0f8ff;
+    background: #f0f9ff;
 }
 
-/* Answer States */
-.quiz-option-btn.correct {
-    background: #d4edda;
-    border-color: #28a745;
-    color: #155724;
-}
+.quiz-option-btn.correct { background: #dcfce7; border-color: #22c55e; color: #166534; }
+.quiz-option-btn.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+.quiz-option-btn.muted { opacity: 0.4; filter: grayscale(1); }
 
-.quiz-option-btn.wrong {
-    background: #f8d7da;
-    border-color: #dc3545;
-    color: #721c24;
-}
-
-.quiz-option-btn.muted {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-/* Feedback & Footer */
+/* 3. Slim Feedback & Footer */
 .quiz-feedback-msg {
-    margin-top: 15px;
-    font-weight: bold;
-    height: 24px;
+    margin-top: auto; /* Pushes to bottom of body */
+    padding-top: 10px;
+    font-size: 0.85rem;
+    height: 20px; /* Locked height so it doesn't push the footer */
 }
-
-.text-correct { color: #27ae60; }
-.text-wrong { color: #c0392b; }
 
 .quiz-footer {
-    padding: 15px 25px;
-    border-top: 1px solid #eee;
+    padding: 10px 20px;
+    border-top: 1px solid #f1f1f1;
     background: #fff;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    height: 55px; /* SHRUNK: Removed the 70px "menace" */
+    flex-shrink: 0;
 }
 
 .btn-next {
-    background: #2c3e50;
+    background: #34495e;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 18px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    transition: background 0.2s;
+    font-size: 0.9rem;
 }
 
-.btn-next:hover { background: #34495e; }
-.btn-next.hidden { display: none; }
-
-/* --- RESULTS SCREEN ANIMATION --- */
+/* 4. Results Screen (Matches the stable height) */
 .quiz-results-screen {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
     text-align: center;
-    padding: 40px;
+    animation: fadeIn 0.4s ease-out;
 }
 
-/* The Donut Chart */
-.circular-chart {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    margin: 0 auto 20px;
+.circular-loader-container {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 120px; /* Perfectly sized for the 460px window */
+    height: 120px;
+    margin-bottom: 20px;
 }
 
-.inner-circle {
-    width: 100px;
-    height: 100px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+.circular-loader {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg); /* Starts the "load" from the top */
+}
+.loader-bg {
+    fill: none;
+    stroke: #f1f3f5;
+    stroke-width: 3.5;
 }
 
-.score-percent {
-    font-size: 2rem;
+/* The Animated Progress Line */
+.loader-circle {
+    fill: none;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    /* This makes it grow smoothly over 1.5 seconds */
+    transition: stroke-dasharray 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loader-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.8rem;
     font-weight: 800;
     color: #2c3e50;
 }
 
+.quiz-results-screen h2 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+.quiz-results-screen p {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slimmed Restart Button */
 .btn-restart {
-    margin-top: 20px;
-    padding: 10px 24px;
     background: #3498db;
     color: white;
     border: none;
-    border-radius: 20px;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+}
+
+.btn-restart:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+.loader-text {
+    font-size: 1.8rem;
+    color: #2c3e50;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-restart {
+    margin-top: 15px;
+    padding: 12px 30px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 25px;
     cursor: pointer;
     font-weight: 600;
+    font-size: 1rem;
+    transition: transform 0.2s, background 0.2s;
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
 }
-/* --- ARTICLE NAVIGATION FOOTER --- */
+
+.btn-restart:hover {
+    transform: translateY(-2px);
+    background: #2980b9;
+}
+
+/* --- ARTICLE NAVIGATION --- */
 .wiki-footer-area {
     margin-top: 60px;
     padding-top: 30px;
     border-top: 1px solid #eee;
-    padding-bottom: 40px; /* Extra space at the very bottom */
+    padding-bottom: 40px;
 }
 
 .article-navigation {
@@ -620,7 +742,7 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    background: #3498db; /* Solid Blue Background */
+    background: #3498db;
     border: 1px solid #2980b9;
     padding: 15px 25px;
     border-radius: 10px;
@@ -633,11 +755,14 @@
 }
 
 .nav-btn:hover {
-    background: #2980b9; /* Darker Blue on Hover */
+    background: #2980b9;
     transform: translateY(-3px);
     box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
 }
-
+.nav-btn.prev {
+    text-align: left;
+    justify-content: flex-start;
+}
 .nav-btn.next {
     text-align: right;
     justify-content: flex-end;
@@ -648,83 +773,276 @@
     flex-direction: column;
 }
 
-/* Metadata (e.g., "Next" / "Previous") */
 .nav-info span:first-child {
     font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.8); /* Faded white */
+    color: rgba(255, 255, 255, 0.8);
     text-transform: uppercase;
     font-weight: 700;
     margin-bottom: 2px;
 }
 
-/* Title of the linked article */
 .nav-title {
     font-size: 1.05rem;
-    color: #ffffff; /* Solid White */
+    color: #ffffff;
     font-weight: 600;
 }
 
-/* Icon Color */
 .nav-btn i {
     color: #ffffff;
     font-size: 1.3rem;
 }
-/* --- MOBILE RESPONSIVE (Snap back to column) --- */
+.mobile-preview-header {
+    display: none;
+}
+.nav-btn-center {
+    display: none;
+}
+.article-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 40px;
+}
+
+.nav-top-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+/* Base style for the lateral buttons */
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #3498db;
+    border: 1px solid #2980b9;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+}
+
+/* THE FIX: Hide the explorer duplicate on Desktop */
+.bottom-explorer-btn {
+    display: none; 
+}
+/* Style for the button when it is in 'Skip' mode */
+.btn-next.btn-skip {
+    background: #95a5a6; /* Grey color for skip */
+    opacity: 0.8;
+}
+
+.btn-next.btn-skip:hover {
+    background: #7f8c8d;
+    opacity: 1;
+}
+
+/* Ensure the correct highlight is vivid */
+.quiz-option-btn.correct {
+    background: #dcfce7 !important;
+    border-color: #22c55e !important;
+    color: #166534 !important;
+    opacity: 1 !important;
+}
+/* --- MOBILE RESPONSIVE --- */
 @media screen and (max-width: 768px) {
-    .scratch-container {
-        flex-direction: column; /* Stack vertically on phones */
-        max-width: 100%;
+    /* 1. The Wrapper: Acting as a stage for the slides */
+    .explorer-wrapper {
+        display: block !important; 
+        height: auto !important;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden; /* Prevent horizontal scrolling during transition */
     }
-    
+
+    /* 2. Unified Slide Styling */
+    .sidebar-vertical, .preview-area {
+        width: 100% !important;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                    opacity 0.3s ease, 
+                    visibility 0.4s;
+        /* Ensure they don't overlap in the layout when one is hidden */
+    }
+
+    /* --- SIDEBAR (Explorer List) --- */
+    .sidebar-vertical {
+        display: block !important; /* Keep in DOM for transition */
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0);
+    }
+
+    /* When Preview is active: Sidebar slides left and fades out */
+    .explorer-wrapper.preview-mode .sidebar-vertical {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(-30px); /* Subtle slide to the left */
+        height: 0; /* Shrink height so footer follows the preview height instead */
+        overflow: hidden;
+    }
+
+    /* --- PREVIEW AREA (The Document) --- */
+    .preview-area {
+        display: block !important; /* Keep in DOM */
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(30px); /* Start slightly to the right */
+        height: 0;
+        overflow: hidden;
+    }
+
+    /* When active: Preview slides in and fades in */
+    .explorer-wrapper.preview-mode .preview-area {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0);
+        height: auto; /* Allow it to take up space and push footer down */
+    }
+
+    /* 3. The Sticky Header (Back Button) */
+    .mobile-preview-header {
+        display: flex;
+        align-items: center;
+        height: 60px;
+        background: #fff;
+        border-bottom: 1px solid #eee;
+        position: sticky; 
+        top: 0;
+        z-index: 100;
+        padding: 0 15px;
+    }
+
+    .btn-back-to-list {
+        background: none;
+        border: none;
+        color: #3498db;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* 4. Article Navigation (Buttons) - Stacked for Mobile */
+    .article-navigation {
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .nav-btn {
+        max-width: 100% !important;
+        padding: 12px;
+        justify-content: space-between !important;
+    }
+
+    .nav-title {
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 5. Content Sizing */
+    .article-viewer, .pdf-viewer {
+        height: auto !important; 
+        min-height: 500px;
+        padding: 20px !important;
+    }
+
+    .pdf-viewer {
+        height: 85vh !important;
+        border: none;
+    }
+    .scratch-container {
+        flex-direction: column; /* Stack: Game on top, Info on bottom */
+        max-width: 100%;
+        margin: 15px 0;
+    }
+
     .scratch-frame-wrapper {
         flex: none;
         width: 100%;
-        padding-bottom: 80%; /* Maintain aspect ratio */
+        aspect-ratio: 4 / 3; /* Standard Scratch ratio */
         min-height: auto;
     }
-    
+
     .scratch-sidebar {
+        padding: 15px;
         border-left: none;
         border-top: 1px solid #eee;
-        padding: 20px;
-        flex-direction: row; /* Horizontal button layout on mobile */
-        justify-content: space-between;
+        text-align: left; /* Better for reading on mobile */
+        align-items: flex-start;
+    }
+
+    .scratch-sidebar h3 {
+        font-size: 1rem;
+        margin-bottom: 5px;
+    }
+
+    /* THE "READ MORE" LOGIC */
+    .scratch-description {
+        position: relative;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        max-height: 2.8em; /* Exactly 2 lines */
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+
+    /* Add a "fade out" effect to show there is more text */
+    .scratch-description::after {
+        content: "Read more...";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(to right, transparent, #f8f9fa 50%);
+        padding-left: 40px;
+        color: #3498db;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    /* When the user clicks the sidebar, expand the text */
+    .scratch-container.expanded .scratch-description {
+        max-height: 500px; /* Large enough for any description */
+    }
+
+    .scratch-container.expanded .scratch-description::after {
+        display: none; /* Hide the "Read more" hint when open */
+    }
+
+    .btn-scratch {
+        width: 100%; /* Big thumb-friendly button */
+        justify-content: center;
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+    .bottom-explorer-btn {
+        display: flex;
+        width: 100%;
+        background: #2c3e50;
+        border: 1px solid #1a252f;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        justify-content: center;
         align-items: center;
         gap: 15px;
+        margin-top: 10px;
     }
 
-    .scratch-sidebar h3, .scratch-sidebar p {
-        display: none; /* Hide text on mobile to save space */
+    .nav-top-row {
+        flex-direction: column; /* Stack Prev/Next on phones */
+        gap: 10px;
     }
-    
-    .btn-scratch {
+
+    .nav-btn {
         width: 100%;
-        justify-content: center;
     }
 }
-@media screen and (max-width: 768px) {
-    /* Existing Layout Fixes */
-    .explorer-wrapper { flex-direction: column; height: calc(100vh - 80px); }
-    .sidebar-vertical { width: 100%; height: 45%; border-right: none; border-bottom: 2px solid #3498db; }
-    .preview-area { height: 55%; }
-    .sidebar-top { padding: 10px; }
-
-    /* --- NEW: FIX MATH SIZING ON PHONE --- */
-    .math-card {
-        padding: 15px;      /* Half the padding */
-        font-size: 0.9rem;  /* Much smaller base font (was 1.3rem) */
-        margin: 15px 0;     /* Less margin */
-    }
-
-    .math-card .katex {
-        font-size: 1em;     /* Reset the boost (was 1.3em) */
-    }
-    
-    .wiki-header h1 {
-        font-size: 1.6rem;  /* Shrink the main title too */
-    }
-    
-    .article-viewer {
-        padding: 20px;      /* Reclaim screen space from edges */
-    }
-}
+.mobile-back-btn { display: none; }

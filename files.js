@@ -132,82 +132,84 @@ window.previewFile = (url, element) => {
         wiki: document.getElementById('article-viewer'),
         empty: document.getElementById('empty-state')
     };
-
     Object.values(views).forEach(el => el.classList.add('hidden'));
     views.empty.style.display = 'none';
-    
-    // Highlight Sidebar Logic
+
+    // Highlight Sidebar
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-    
-    // If element wasn't passed (e.g. from Next/Prev button), find it
-    if (!element) {
-        element = document.querySelector(`.file-item[data-link="${url}"]`);
-    }
-    if (element) {
-        element.classList.add('active');
-        // Optional: Scroll sidebar to keep active item in view
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!element) element = document.querySelector(`.file-item[data-link="${url}"]`);
+    if (element) element.classList.add('active');
+
+    // --- NEW: MOBILE VIEW SWITCH ---
+    if (window.innerWidth <= 768) {
+        document.querySelector('.explorer-wrapper').classList.add('preview-mode');
     }
 
+    // ... existing url logic (json vs pdf) ...
     if (url.endsWith('.json')) {
         views.wiki.classList.remove('hidden');
-        const fullUrl = url.startsWith('http') ? url : `${BASE_URL}/articles_data/${url}`;
-        renderWiki(fullUrl, url); // Pass the raw filename (url) for navigation logic
+        renderWiki(`${BASE_URL}/articles_data/${url}`, url);
     } else {
         views.pdf.classList.remove('hidden');
         views.pdf.src = `${url}#toolbar=0`;
     }
 };
-
+window.closePreview = () => {
+    document.querySelector('.explorer-wrapper').classList.remove('preview-mode');
+};
 // 5. WIKI RENDERER
 async function renderWiki(url, originalFilename) {
     const container = document.getElementById('article-viewer');
     container.innerHTML = '<div class="loading-spinner">Loading Article...</div>';
-    
-    // Scroll to top when loading new article
     container.scrollTop = 0;
 
     try {
         const res = await fetch(url);
         if (!res.ok) throw new Error("Article not found");
         const data = await res.json();
-
         await waitForKaTeX();
 
-        // --- NAVIGATION LOGIC ---
-        // Find current index
         const currentIndex = window.currentFilesList.findIndex(f => f.link === originalFilename);
         const prevFile = currentIndex > 0 ? window.currentFilesList[currentIndex - 1] : null;
         const nextFile = currentIndex < window.currentFilesList.length - 1 ? window.currentFilesList[currentIndex + 1] : null;
 
-        // Build Nav Buttons HTML
+        // NAVIGATION AREA
         let navHtml = `<div class="article-navigation">`;
         
+        // Top Row: Previous and Next
+        navHtml += `<div class="nav-top-row">`;
         if (prevFile) {
             navHtml += `
                 <button class="nav-btn prev" onclick="previewFile('${prevFile.link}')">
                     <i class="fa-solid fa-arrow-left"></i>
-                    <div class="nav-info">
-                        <span>Previous</span>
-                        <span class="nav-title">${prevFile.name}</span>
-                    </div>
+                    <div class="nav-info"><span>Previous</span><span class="nav-title">${prevFile.name}</span></div>
                 </button>`;
         } else {
-            navHtml += `<div class="nav-spacer"></div>`; // Spacer to keep Next button on right
+            navHtml += `<div class="nav-spacer"></div>`;
         }
 
         if (nextFile) {
             navHtml += `
                 <button class="nav-btn next" onclick="previewFile('${nextFile.link}')">
-                    <div class="nav-info">
-                        <span>Next</span>
-                        <span class="nav-title">${nextFile.name}</span>
-                    </div>
+                    <div class="nav-info"><span>Next</span><span class="nav-title">${nextFile.name}</span></div>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>`;
+        } else {
+            navHtml += `<div class="nav-spacer"></div>`;
         }
-        navHtml += `</div>`;
-        // ------------------------
+        navHtml += `</div>`; // End top row
+
+        // THE DUPLICATE: This is exactly what you asked for
+        navHtml += `
+            <button class="nav-btn bottom-explorer-btn" onclick="closePreview()">
+                <i class="fa-solid fa-chevron-left"></i>
+                <div class="nav-info">
+                    <span>Back to List</span>
+                    <span class="nav-title">Explorer Menu</span>
+                </div>
+            </button>`;
+
+        navHtml += `</div>`; // End navigation
 
         const html = `
             <div class="wiki-container">
@@ -218,21 +220,12 @@ async function renderWiki(url, originalFilename) {
                 <div class="wiki-body">
                     ${data.sections.map((s, index) => renderSection(s, index)).join('')}
                 </div>
-                <footer class="wiki-footer-area">
-                    ${navHtml}
-                </footer>
+                <footer class="wiki-footer-area">${navHtml}</footer>
             </div>`;
 
         container.innerHTML = html;
-
-        data.sections.forEach((s, i) => {
-            if (s.type === 'formula' && s.latex) renderBlockMath(s.latex, `math-${i}`);
-        });
-
-        const quizElements = container.querySelectorAll('.quiz-window');
-        quizElements.forEach(el => {
-            if (window.renderQuizQuestion) window.renderQuizQuestion(el.id);
-        });
+        data.sections.forEach((s, i) => { if (s.type === 'formula' && s.latex) renderBlockMath(s.latex, `math-${i}`); });
+        container.querySelectorAll('.quiz-window').forEach(el => window.renderQuizQuestion && window.renderQuizQuestion(el.id));
 
     } catch (err) {
         container.innerHTML = `<div class="error-msg">⚠️ ${err.message}</div>`;
@@ -257,23 +250,27 @@ function renderSection(s, index) {
         case 'example':
             html += `<div class="example-box"><strong>Example:</strong> ${content}</div>`; break;
         case 'scratch':
-            const match = s.url.match(/projects\/(\d+)/);
-            const id = match ? match[1] : s.url;
-            const title = s.widgetTitle || "Interactive Demo";
-            const desc = s.description ? parseInlineMath(s.description) : "Click the Green Flag to start.";
-            const embedUrl = s.turboMode ? `https://turbowarp.org/${id}/embed?turbo` : `https://scratch.mit.edu/projects/${id}/embed`;
-            html += `
-                <div class="scratch-container">
-                    <div class="scratch-frame-wrapper">
-                        <iframe src="${embedUrl}" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
-                    </div>
-                    <div class="scratch-sidebar">
-                        <h3>${title}</h3><p>${desc}</p>
-                        <a href="https://scratch.mit.edu/projects/${id}/" target="_blank" class="btn-scratch">
-                            <i class="fa-solid fa-code-branch"></i> View & Remix
-                        </a>
-                    </div>
-                </div>`; break;
+        const match = s.url.match(/projects\/(\d+)/);
+        const id = match ? match[1] : s.url;
+        const title = s.widgetTitle || "Interactive Demo";
+        const desc = s.description ? parseInlineMath(s.description) : "Click the Green Flag to start.";
+        const embedUrl = s.turboMode ? `https://turbowarp.org/${id}/embed?turbo` : `https://scratch.mit.edu/projects/${id}/embed`;
+        
+        // Added 'onclick' to the container for mobile expansion
+        html += `
+            <div class="scratch-container" onclick="this.classList.toggle('expanded')">
+                <div class="scratch-frame-wrapper">
+                    <iframe src="${embedUrl}" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+                </div>
+                <div class="scratch-sidebar">
+                    <h3>${title}</h3>
+                    <div class="scratch-description">${desc}</div>
+                    <a href="https://scratch.mit.edu/projects/${id}/" target="_blank" class="btn-scratch" onclick="event.stopPropagation()">
+                        <i class="fa-solid fa-code-branch"></i> View & Remix
+                    </a>
+                </div>
+            </div>`;
+        break;
         case 'quiz':
             const quizId = `quiz-${Date.now()}-${index}`;
             if (!window.quizzes) window.quizzes = {};
@@ -305,7 +302,11 @@ window.renderQuizQuestion = function(quizId) {
 
     progressText.innerText = `Question ${data.currentQ + 1} of ${data.total}`;
     progressFill.style.width = `${((data.currentQ) / data.total) * 100}%`;
-    nextBtn.classList.add('hidden');
+
+    // --- NEW: Reset button to 'Skip' state ---
+    nextBtn.classList.remove('hidden'); 
+    nextBtn.innerHTML = `Skip Question <i class="fa-solid fa-forward"></i>`;
+    nextBtn.classList.add('btn-skip'); // Optional class for styling
 
     let mixedOptions = q.options.map((opt, i) => ({ text: opt, isCorrect: i === q.correct }));
     mixedOptions.sort(() => Math.random() - 0.5);
@@ -325,10 +326,22 @@ window.handleAnswer = function(quizId, btn, isCorrect) {
     const feedback = container.querySelector('.quiz-feedback-msg');
     const nextBtn = container.querySelector('.btn-next');
 
+    // Identify the correct text for highlighting
+    const currentQuestion = data.questions[data.currentQ];
+    const correctText = currentQuestion.options[currentQuestion.correct];
+
     allBtns.forEach(b => {
         b.disabled = true;
-        if (b === btn) b.classList.add(isCorrect ? 'correct' : 'wrong');
-        else b.classList.add('muted');
+        
+        // Highlight logic
+        if (b.innerText.trim() === correctText.trim()) {
+            b.classList.add('correct');
+            b.classList.remove('muted');
+        } else if (b === btn && !isCorrect) {
+            b.classList.add('wrong');
+        } else {
+            b.classList.add('muted');
+        }
     });
 
     if (isCorrect) {
@@ -337,11 +350,16 @@ window.handleAnswer = function(quizId, btn, isCorrect) {
         feedback.innerHTML = `<span class="text-correct"><i class="fa-solid fa-circle-check"></i> Correct!</span>`;
     } else {
         playSound('wrong');
-        feedback.innerHTML = `<span class="text-wrong"><i class="fa-solid fa-circle-xmark"></i> Incorrect.</span>`;
+        feedback.innerHTML = `<span class="text-wrong"><i class="fa-solid fa-circle-xmark"></i> Incorrect. The correct answer is highlighted.</span>`;
     }
 
-    nextBtn.classList.remove('hidden');
-    if (data.currentQ === data.total - 1) nextBtn.innerHTML = `See Results <i class="fa-solid fa-trophy"></i>`;
+    // --- NEW: Change 'Skip' to 'Next' ---
+    nextBtn.classList.remove('btn-skip');
+    if (data.currentQ === data.total - 1) {
+        nextBtn.innerHTML = `See Results <i class="fa-solid fa-trophy"></i>`;
+    } else {
+        nextBtn.innerHTML = `Next Question <i class="fa-solid fa-arrow-right"></i>`;
+    }
 };
 
 window.nextQuestion = function(quizId) {
@@ -350,24 +368,108 @@ window.nextQuestion = function(quizId) {
     if (data.currentQ < data.total) renderQuizQuestion(quizId);
     else showQuizResults(quizId);
 };
+window.resetQuiz = function(quizId) {
+    const data = window.quizzes[quizId];
+    if (!data) return;
 
+    // Reset the counters
+    data.currentQ = 0;
+    data.score = 0;
+
+    // 1. Get the container back to its original "Window" state
+    const container = document.getElementById(quizId);
+    container.innerHTML = `
+        <div class="quiz-header">
+            <div class="quiz-progress-text">Question 1 of ${data.total}</div>
+            <div class="quiz-progress-track">
+                <div class="quiz-progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+        <div class="quiz-body" id="${quizId}-body"></div>
+        <div class="quiz-footer">
+            <button class="btn-next hidden" onclick="nextQuestion('${quizId}')">
+                Next Question <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    `;
+
+    // 2. Restart the quiz without a page reload
+    renderQuizQuestion(quizId);
+};
 window.showQuizResults = function(quizId) {
     const data = window.quizzes[quizId];
+    const container = document.getElementById(quizId);
     const percentage = Math.round((data.score / data.total) * 100);
-    let color = '#e74c3c', msg = "Keep practicing!";
     
-    if (percentage >= 50) { playSound('win'); color = '#f1c40f'; msg = "Good job!"; } 
-    else { playSound('lose'); }
-    if (percentage >= 80) { color = '#2ecc71'; msg = "Outstanding!"; }
+    let color = '#e74c3c'; // Red
+    let msg = "Keep practicing!";
+    
+    if (percentage >= 50) { 
+        playSound('win'); 
+        color = '#f1c40f'; // Yellow
+        msg = "Good job!"; 
+    } else {
+        playSound('lose');
+    }
+    
+    if (percentage >= 80) { 
+        color = '#2ecc71'; // Green
+        msg = "Outstanding!"; 
+    }
 
-    document.getElementById(quizId).innerHTML = `
+    // 1. Initial Render: The circle is explicitly set to "0, 100"
+    container.innerHTML = `
         <div class="quiz-results-screen">
-            <div class="circular-chart" style="background: conic-gradient(${color} ${percentage * 3.6}deg, #ecf0f1 0deg);"><div class="inner-circle"><span class="score-percent">${percentage}%</span></div></div>
-            <h2>${msg}</h2><p>You got ${data.score} out of ${data.total} correct.</p>
-            <button class="btn-restart" onclick="location.reload()">Try Again</button>
-        </div>`;
-};
+            <div class="circular-loader-container">
+                <svg class="circular-loader" viewBox="0 0 36 36">
+                    <path class="loader-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="loader-circle" 
+                          stroke="${color}" 
+                          stroke-dasharray="0, 100" 
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="loader-text">0%</div>
+            </div>
 
+            <h2>${msg}</h2>
+            <p>You got ${data.score} out of ${data.total} correct.</p>
+            <button class="btn-restart" onclick="resetQuiz('${quizId}')">Try Again</button>
+        </div>
+    `;
+
+    // 2. TRIGGER ANIMATION
+    // We use double requestAnimationFrame to ensure the browser has rendered the 0% state
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const circle = container.querySelector('.loader-circle');
+            const textObj = container.querySelector('.loader-text');
+
+            if (circle) {
+                circle.style.strokeDasharray = `${percentage}, 100`;
+            }
+
+            if (textObj) {
+                let start = 0;
+                const duration = 1500; 
+                const startTime = performance.now();
+
+                function updateCounter(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    const currentVal = Math.floor(easeOut * percentage);
+                    
+                    textObj.innerText = currentVal + "%";
+
+                    if (progress < 1) {
+                        requestAnimationFrame(updateCounter);
+                    }
+                }
+                requestAnimationFrame(updateCounter);
+            }
+        });
+    });
+};
 // 7. MATH UTILITIES
 function parseInlineMath(text) {
     if (!text) return '';
@@ -386,19 +488,39 @@ function waitForKaTeX() {
     });
 }
 
-// 8. TREE RENDERER (Updated to add data-link attribute)
 function renderTree(structure) {
     let html = '';
+    
+    // 1. Folders
     Object.keys(structure).forEach(key => {
         if (key === '__FILES__') return;
-        html += `<details class="folder-details" open><summary class="folder-summary"><i class="folder-icon"></i><span>${key}</span></summary><div class="folder-content">${renderTree(structure[key])}</div></details>`;
+        html += `
+            <details class="folder-details" open>
+                <summary class="folder-summary">
+                    <i class="folder-arrow"></i>
+                    <span class="folder-name">${key}</span>
+                </summary>
+                <div class="folder-content">
+                    ${renderTree(structure[key])}
+                </div>
+            </details>`;
     });
+    
+    // 2. Files (Nodes)
     if (structure['__FILES__']) {
-        structure['__FILES__'].forEach(f => {
-            html += `<div class="file-item" data-link="${f.link}" onclick="previewFile('${f.link}', this)"><i class="fa-regular fa-file-pdf file-icon"></i><span>${f.name}</span></div>`;
+        const files = structure['__FILES__'];
+        files.forEach((f, index) => {
+            const isFirst = index === 0 ? 'is-first' : '';
+            const isLast = index === files.length - 1 ? 'is-last' : '';
+            const isOnly = files.length === 1 ? 'is-only' : '';
+
+            html += `
+                <div class="file-item ${isFirst} ${isLast} ${isOnly}" data-link="${f.link}" onclick="previewFile('${f.link}', this)">
+                    <i class="fa-solid fa-circle-check node-icon"></i>
+                    <span class="file-name">${f.name}</span>
+                </div>`;
         });
     }
     return html;
 }
-
 document.addEventListener('DOMContentLoaded', loadFiles);

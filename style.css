@@ -4,14 +4,14 @@
     padding: 0;
     box-sizing: border-box;
 }
-
+/* --- BODY FLOW --- */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f7fa;
     color: #2c3e50;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100vh; /* Keeps footer at bottom on short pages */
 }
 
 /* --- HEADER --- */
@@ -465,6 +465,22 @@ body {
 
     .section-title {
         font-size: 1.5rem;
+    }
+    .navbar .btn-login {
+        width: calc(100% - 10px); /* Slightly less than full width for breathing room */
+        margin-top: 20px;         /* Push it away from the other links */
+        padding: 12px;            /* Thicker button for mobile thumbs */
+        text-align: center;       /* Center the text */
+        border-bottom: none;      /* Remove the grey line used for other links */
+        display: inline-block;
+        background-color: #3498db;
+        border-radius: 8px;       /* Modern rounded corners */
+        box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+    }
+
+    .navbar .btn-login:hover {
+        background-color: #2980b9;
+        transform: none; /* Disable the 'lift' effect on mobile to keep it stable */
     }
 }
 

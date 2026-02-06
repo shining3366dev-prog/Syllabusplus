@@ -46,6 +46,13 @@
         </aside>
 
         <main class="preview-area">
+            <div class="mobile-preview-header">
+                <button class="btn-back-to-list" onclick="closePreview()">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Back to Explorer</span>
+                </button>
+            </div>
+
             <div id="empty-state" class="empty-state">
                 <div class="empty-icon-circle">
                     <i class="fa-regular fa-file-lines"></i>
@@ -53,7 +60,7 @@
                 <h3>Select a document</h3>
                 <p>Choose a file from the sidebar to preview it.</p>
             </div>
-            
+
             <div id="article-viewer" class="article-viewer hidden"></div>
             
             <iframe id="pdf-viewer" class="pdf-viewer hidden" sandbox="allow-scripts allow-same-origin" src=""></iframe>
