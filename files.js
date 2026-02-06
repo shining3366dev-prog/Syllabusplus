@@ -284,6 +284,13 @@ window.renderQuizQuestion = function(quizId) {
     const q = data.questions[data.currentQ];
     const body = document.getElementById(`${quizId}-body`);
     const nextBtn = document.querySelector(`#${quizId} .btn-next`);
+    const progressText = document.querySelector(`#${quizId} .quiz-progress-text`);
+    const progressFill = document.querySelector(`#${quizId} .quiz-progress-fill`);
+
+    // UPDATE UI HEADERS
+    progressText.innerText = `Question ${data.currentQ + 1} of ${data.total}`;
+    // We use (currentQ / total) * 100 to show how much is COMPLETED
+    progressFill.style.width = `${(data.currentQ / data.total) * 100}%`;
     
     // Initial State: Button says "Skip"
     nextBtn.classList.remove('hidden');
@@ -303,11 +310,11 @@ window.handleAnswer = function(quizId, btn, isCorrect) {
     const container = document.getElementById(quizId);
     const allBtns = container.querySelectorAll('.quiz-option-btn');
     const nextBtn = container.querySelector('.btn-next');
+    const progressFill = container.querySelector('.quiz-progress-fill'); // ADD THIS
     
     const correctIdx = data.questions[data.currentQ].correct;
     const correctBtn = allBtns[correctIdx];
 
-    // Mute everything initially
     allBtns.forEach(b => {
         b.disabled = true;
         b.classList.add('muted');
@@ -316,16 +323,18 @@ window.handleAnswer = function(quizId, btn, isCorrect) {
     if (isCorrect) {
         data.score++;
         btn.classList.add('correct');
-        btn.classList.remove('muted'); // REMOVE MUTED SO COLOR SHOWS
+        btn.classList.remove('muted');
         playSound('correct');
     } else {
         btn.classList.add('wrong');
-        btn.classList.remove('muted'); // REMOVE MUTED SO RED SHOWS
-        
+        btn.classList.remove('muted');
         correctBtn.classList.add('correct'); 
-        correctBtn.classList.remove('muted'); // REMOVE MUTED SO GREEN SHOWS
+        correctBtn.classList.remove('muted');
         playSound('wrong');
     }
+
+    // UPDATE PROGRESS BAR: Show completion for THIS question
+    progressFill.style.width = `${((data.currentQ + 1) / data.total) * 100}%`;
 
     // Change Skip to Next
     nextBtn.dataset.answered = "true";
