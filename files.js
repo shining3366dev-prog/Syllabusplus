@@ -1,11 +1,31 @@
 /**
  * SYLLABUS+ FILE EXPLORER ENGINE
- * Handles: File Tree, PDF Preview, Wiki Rendering, and Math/Scratch Widgets.
+ * Handles: File Tree, PDF Preview, Wiki Rendering, Math/Scratch Widgets, and Sound Effects.
  */
 
 // --- CONFIGURATION ---
 const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const BASE_URL = IS_LOCAL ? '../Syllabusplus-Database' : 'https://shining3366dev-prog.github.io/Syllabusplus-Database';
+
+// --- SOUND EFFECTS CONFIGURATION ---
+// I picked these specifically for your "Yippee / Oh Hell Nah" request.
+const QUIZ_SOUNDS = {
+    correct: "https://www.myinstants.com/media/sounds/correct.mp3",  
+    wrong:   "https://www.myinstants.com/media/sounds/wrong-answer-sound-effect.mp3", 
+    win:     "https://www.myinstants.com/media/sounds/tadaaa.mp3",          
+    lose:    "https://www.myinstants.com/media/sounds/sound-fail-fallo.mp3"         
+};
+
+// Helper to play sound safely
+function playSound(type) {
+    try {
+        const audio = new Audio(QUIZ_SOUNDS[type]);
+        audio.volume = 0.5; // Keep it at 50% so it's not ear-blasting
+        audio.play().catch(e => console.log("Audio autoplay blocked:", e));
+    } catch (e) {
+        console.warn("Sound error:", e);
+    }
+}
 
 // 1. HELPER: Get Subject from URL
 function getSubjectFromURL() {
@@ -24,21 +44,17 @@ async function loadFiles() {
     }
     titleElement.innerText = currentSubject;
 
-    // A. Setup Dropdown & Get Available Years
     const availableYears = await setupYearDropdown(currentSubject);
 
-    // B. Validate Saved Year
     let savedYear = localStorage.getItem('selectedYear') || "ALL";
     const dropdown = document.getElementById('file-year-select');
 
-    // If saved year isn't valid for this subject, default to first available
     if (availableYears.length > 0 && !availableYears.includes(savedYear) && savedYear !== "ALL") {
         savedYear = availableYears.length > 1 ? "ALL" : availableYears[0];
         localStorage.setItem('selectedYear', savedYear);
     }
     if (dropdown) dropdown.value = savedYear;
 
-    // C. Fetch Files
     const FILES_URL = `${BASE_URL}/subject-files.csv?t=${Date.now()}`;
     
     try {
@@ -54,13 +70,11 @@ async function loadFiles() {
             const [subj, year, path, name, link] = row.split(';').map(c => c?.trim());
 
             if (subj && subj.toLowerCase() === currentSubject.toLowerCase()) {
-                // Filter Logic
                 if (savedYear !== "ALL" && year && year !== savedYear) return;
 
                 totalFiles++;
                 const folders = path ? path.split(/[/\\]/).filter(f => f.trim()) : []; 
                 
-                // Build Tree
                 let current = fileStructure;
                 folders.forEach(folder => {
                     if (!current[folder]) current[folder] = {};
@@ -122,14 +136,12 @@ window.previewFile = (url, element) => {
         empty: document.getElementById('empty-state')
     };
 
-    // Reset UI
     Object.values(views).forEach(el => el.classList.add('hidden'));
     views.empty.style.display = 'none';
     
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     if (element) element.classList.add('active');
 
-    // Determine Type
     if (url.endsWith('.json')) {
         views.wiki.classList.remove('hidden');
         const fullUrl = url.startsWith('http') ? url : `${BASE_URL}/articles_data/${url}`;
@@ -150,7 +162,6 @@ async function renderWiki(url) {
         if (!res.ok) throw new Error("Article not found");
         const data = await res.json();
 
-        // Wait for Math Engine (KaTeX)
         await waitForKaTeX();
 
         const html = `
@@ -160,15 +171,20 @@ async function renderWiki(url) {
                     <p class="wiki-meta"><i class="fa-solid fa-clock-rotate-left"></i> Updated: ${data.lastUpdated}</p>
                 </header>
                 <div class="wiki-body">
-                    ${data.sections.map(renderSection).join('')}
+                    ${data.sections.map((s, index) => renderSection(s, index)).join('')}
                 </div>
             </div>`;
 
         container.innerHTML = html;
 
-        // Post-Render: Render Block Math
         data.sections.forEach((s, i) => {
             if (s.type === 'formula' && s.latex) renderBlockMath(s.latex, `math-${i}`);
+        });
+
+        // Initialize Quizzes
+        const quizElements = container.querySelectorAll('.quiz-window');
+        quizElements.forEach(el => {
+            if (window.renderQuizQuestion) window.renderQuizQuestion(el.id);
         });
 
     } catch (err) {
@@ -176,7 +192,7 @@ async function renderWiki(url) {
     }
 }
 
-// 6. SECTION RENDERER (Switch Logic)
+// 6. SECTION RENDERER
 function renderSection(s, index) {
     const content = s.content ? parseInlineMath(s.content) : '';
     let html = '<section class="wiki-section">';
@@ -206,12 +222,15 @@ function renderSection(s, index) {
             const match = s.url.match(/projects\/(\d+)/);
             const id = match ? match[1] : s.url;
             const title = s.widgetTitle || "Interactive Demo";
-            const desc = s.description || "Click the Green Flag to start.";
-            
+            const desc = s.description ? parseInlineMath(s.description) : "Click the Green Flag to start.";
+            const embedUrl = s.turboMode 
+                ? `https://turbowarp.org/${id}/embed?turbo` 
+                : `https://scratch.mit.edu/projects/${id}/embed`;
+
             html += `
                 <div class="scratch-container">
                     <div class="scratch-frame-wrapper">
-                        <iframe src="https://scratch.mit.edu/projects/${id}/embed" 
+                        <iframe src="${embedUrl}" 
                                 allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
                     </div>
                     <div class="scratch-sidebar">
@@ -223,16 +242,153 @@ function renderSection(s, index) {
                     </div>
                 </div>`;
             break;
+
+        case 'quiz':
+            const quizId = `quiz-${Date.now()}-${index}`;
+            if (!window.quizzes) window.quizzes = {};
+            window.quizzes[quizId] = {
+                questions: s.questions,
+                currentQ: 0,
+                score: 0,
+                total: s.questions.length
+            };
+
+            html += `
+                <div id="${quizId}" class="quiz-window">
+                    <div class="quiz-header">
+                        <div class="quiz-progress-text">Question 1 of ${s.questions.length}</div>
+                        <div class="quiz-progress-track">
+                            <div class="quiz-progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="quiz-body" id="${quizId}-body"></div>
+                    <div class="quiz-footer">
+                        <button class="btn-next hidden" onclick="nextQuestion('${quizId}')">
+                            Next Question <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>`;
+            break;
     }
 
     html += '</section>';
     return html;
 }
 
+// --- ADVANCED QUIZ ENGINE ---
+window.renderQuizQuestion = function(quizId) {
+    const data = window.quizzes[quizId];
+    const q = data.questions[data.currentQ];
+    const body = document.getElementById(`${quizId}-body`);
+    const nextBtn = document.querySelector(`#${quizId} .btn-next`);
+    const progressText = document.querySelector(`#${quizId} .quiz-progress-text`);
+    const progressFill = document.querySelector(`#${quizId} .quiz-progress-fill`);
+
+    progressText.innerText = `Question ${data.currentQ + 1} of ${data.total}`;
+    progressFill.style.width = `${((data.currentQ) / data.total) * 100}%`;
+    nextBtn.classList.add('hidden');
+
+    // Shuffle options logic
+    let mixedOptions = q.options.map((opt, i) => ({ 
+        text: opt, 
+        isCorrect: i === q.correct 
+    }));
+    mixedOptions.sort(() => Math.random() - 0.5);
+
+    body.innerHTML = `
+        <h3 class="quiz-question-text">${parseInlineMath(q.question)}</h3>
+        <div class="quiz-options-grid">
+            ${mixedOptions.map(opt => `
+                <button class="quiz-option-btn" onclick="handleAnswer('${quizId}', this, ${opt.isCorrect})">
+                    ${parseInlineMath(opt.text)}
+                </button>
+            `).join('')}
+        </div>
+        <div class="quiz-feedback-msg"></div>
+    `;
+};
+
+window.handleAnswer = function(quizId, btn, isCorrect) {
+    const data = window.quizzes[quizId];
+    const container = document.getElementById(quizId);
+    const allBtns = container.querySelectorAll('.quiz-option-btn');
+    const feedback = container.querySelector('.quiz-feedback-msg');
+    const nextBtn = container.querySelector('.btn-next');
+
+    allBtns.forEach(b => {
+        b.disabled = true;
+        if (b === btn) {
+            b.classList.add(isCorrect ? 'correct' : 'wrong');
+        } else {
+            b.classList.add('muted');
+        }
+    });
+
+    if (isCorrect) {
+        data.score++;
+        playSound('correct'); // PLAY "PING"
+        feedback.innerHTML = `<span class="text-correct"><i class="fa-solid fa-circle-check"></i> Correct!</span>`;
+    } else {
+        playSound('wrong'); // PLAY "BUZZER"
+        feedback.innerHTML = `<span class="text-wrong"><i class="fa-solid fa-circle-xmark"></i> Incorrect.</span>`;
+    }
+
+    nextBtn.classList.remove('hidden');
+    if (data.currentQ === data.total - 1) {
+        nextBtn.innerHTML = `See Results <i class="fa-solid fa-trophy"></i>`;
+    }
+};
+
+window.nextQuestion = function(quizId) {
+    const data = window.quizzes[quizId];
+    data.currentQ++;
+
+    if (data.currentQ < data.total) {
+        renderQuizQuestion(quizId);
+    } else {
+        showQuizResults(quizId);
+    }
+};
+
+window.showQuizResults = function(quizId) {
+    const data = window.quizzes[quizId];
+    const container = document.getElementById(quizId);
+    const percentage = Math.round((data.score / data.total) * 100);
+    
+    let color = '#e74c3c'; // Red
+    let msg = "Keep practicing!";
+    
+    // SOUND LOGIC FOR RESULTS
+    if (percentage >= 50) {
+        playSound('win'); // PLAY "YIPPEE"
+        color = '#f1c40f'; 
+        msg = "Good job!"; 
+    } else {
+        playSound('lose'); // PLAY "OH HELL NAH"
+    }
+    
+    if (percentage >= 80) { 
+        color = '#2ecc71'; 
+        msg = "Outstanding!"; 
+    }
+
+    container.innerHTML = `
+        <div class="quiz-results-screen">
+            <div class="circular-chart" style="background: conic-gradient(${color} ${percentage * 3.6}deg, #ecf0f1 0deg);">
+                <div class="inner-circle">
+                    <span class="score-percent">${percentage}%</span>
+                </div>
+            </div>
+            <h2>${msg}</h2>
+            <p>You got ${data.score} out of ${data.total} correct.</p>
+            <button class="btn-restart" onclick="location.reload()">Try Again</button>
+        </div>
+    `;
+};
+
 // 7. MATH UTILITIES
 function parseInlineMath(text) {
     if (!text) return '';
-    // Replaces $...$ with KaTeX HTML
     return text.replace(/\$([^$]+)\$/g, (match, tex) => {
         try {
             return katex.renderToString(tex, { throwOnError: false, displayMode: false });
@@ -260,11 +416,9 @@ function waitForKaTeX() {
     });
 }
 
-// 8. TREE RENDERER (Recursive)
+// 8. TREE RENDERER
 function renderTree(structure) {
     let html = '';
-    
-    // Folders
     Object.keys(structure).forEach(key => {
         if (key === '__FILES__') return;
         html += `
@@ -273,8 +427,6 @@ function renderTree(structure) {
                 <div class="folder-content">${renderTree(structure[key])}</div>
             </details>`;
     });
-
-    // Files
     if (structure['__FILES__']) {
         structure['__FILES__'].forEach(f => {
             html += `
