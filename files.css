@@ -598,6 +598,77 @@
     cursor: pointer;
     font-weight: 600;
 }
+/* --- ARTICLE NAVIGATION FOOTER --- */
+.wiki-footer-area {
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 1px solid #eee;
+    padding-bottom: 40px; /* Extra space at the very bottom */
+}
+
+.article-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.nav-spacer {
+    flex: 1;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #3498db; /* Solid Blue Background */
+    border: 1px solid #2980b9;
+    padding: 15px 25px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    max-width: 45%;
+    text-decoration: none;
+    box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
+}
+
+.nav-btn:hover {
+    background: #2980b9; /* Darker Blue on Hover */
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+}
+
+.nav-btn.next {
+    text-align: right;
+    justify-content: flex-end;
+}
+
+.nav-info {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Metadata (e.g., "Next" / "Previous") */
+.nav-info span:first-child {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8); /* Faded white */
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+/* Title of the linked article */
+.nav-title {
+    font-size: 1.05rem;
+    color: #ffffff; /* Solid White */
+    font-weight: 600;
+}
+
+/* Icon Color */
+.nav-btn i {
+    color: #ffffff;
+    font-size: 1.3rem;
+}
 /* --- MOBILE RESPONSIVE (Snap back to column) --- */
 @media screen and (max-width: 768px) {
     .scratch-container {

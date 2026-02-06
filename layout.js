@@ -18,7 +18,7 @@ const headerHTML = `
 
 // 2. Footer
 const footerHTML = `
-    <footer>
+    <footer id="main-footer">
         <p>&copy; 2026 SYLLABUSPLUS. All rights reserved.</p>
     </footer>
 `;
