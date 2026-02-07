@@ -58,15 +58,15 @@ const langNames = { 'en': 'English', 'fr': 'Français', 'de': 'Deutsch' };
 
 const headerHTML = `
     <header class="header">
-        <a href="index.html?lang=${currentLang}" class="logo">Syllabus+</a>
+        <a href="#" onclick="goToHome(event)" class="logo">Syllabus+</a>
         
         <button class="menu-toggle" id="mobile-menu-btn" aria-label="Toggle Menu">
             <i class="fa-solid fa-bars"></i>
         </button>
 
         <nav class="navbar" id="main-nav">
-            <a href="index.html?lang=${currentLang}" data-i18n="nav_home">Home</a>
-            <a href="index.html?lang=${currentLang}#subjects" data-i18n="nav_subjects">Subjects</a>
+            <a href="#" onclick="goToHome(event)" data-i18n="nav_home">Home</a>
+            <a href="#" onclick="goToSubjects(event)" data-i18n="nav_subjects">Subjects</a>
             <a href="#about" data-i18n="nav_about">About</a>
             
             <div class="lang-wrapper">
@@ -93,6 +93,19 @@ const footerHTML = `
         <p>&copy; 2026 SYLLABUSPLUS. <span data-i18n="footer_rights">All rights reserved.</span></p>
     </footer>
 `;
+
+// --- NAVIGATION FUNCTIONS ---
+window.goToHome = function(event) {
+    if (event) event.preventDefault();
+    const currentLang = getLangFromURL();
+    window.location.href = `index.html?lang=${currentLang}`;
+};
+
+window.goToSubjects = function(event) {
+    if (event) event.preventDefault();
+    const currentLang = getLangFromURL();
+    window.location.href = `index.html?lang=${currentLang}#subjects`;
+};
 
 // --- CHANGE LANGUAGE FUNCTION ---
 window.changeLanguage = function(langCode, event) {
