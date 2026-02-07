@@ -208,9 +208,9 @@ async function loadFiles(isSilent = false) {
         return;
     }
     
+    // Set a temporary title immediately
     if (titleElement) {
-    const translatedSubject = translateSubjectTitle(currentSubject);
-    titleElement.innerText = translatedSubject;
+        titleElement.innerText = currentSubject;
     }
 
     const availableYears = await setupYearDropdown(currentSubject);
@@ -305,12 +305,29 @@ async function loadFiles(isSilent = false) {
             treeContainer.innerHTML = renderTree(fileStructure);
         }
 
+        // Update the translated title AFTER everything loads
+        if (titleElement) {
+            const translatedSubject = translateSubjectTitle(currentSubject);
+            titleElement.innerText = translatedSubject;
+        }
+
         // Restore active file highlight after language switch
         if (isSilent) {
             const activeLink = document.getElementById('article-viewer')?.getAttribute('data-current-file');
             if (activeLink) {
                 const activeItem = document.querySelector(`.file-item[data-link="${activeLink}"]`);
                 if (activeItem) activeItem.classList.add('active');
+            }
+        }
+        
+        // NEW: Check if there's a file parameter in the URL and load it
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileToLoad = urlParams.get('file');
+        if (fileToLoad && !isSilent) {
+            // Find the file in the list and preview it
+            const fileItem = window.currentFilesList.find(f => f.link === fileToLoad);
+            if (fileItem) {
+                setTimeout(() => previewFile(fileToLoad), 100);
             }
         }
 
@@ -378,6 +395,12 @@ window.previewFile = (url, element) => {
     if (window.innerWidth <= 768) {
         document.querySelector('.explorer-wrapper').classList.add('preview-mode');
     }
+
+    // Update URL without page refresh
+    const currentSubject = getSubjectFromURL();
+    const currentLang = getLangFromURL();
+    const newUrl = `files.html?subject=${currentSubject}&lang=${currentLang}&file=${encodeURIComponent(url)}`;
+    window.history.pushState({ file: url }, '', newUrl);
 
     if (url.endsWith('.json')) {
         views.wiki.classList.remove('hidden');
@@ -860,3 +883,21 @@ function renderTree(structure) {
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', loadFiles);
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', (event) => {
+    if (event.state && event.state.file) {
+        // Reload the file from the URL
+        previewFile(event.state.file);
+    } else {
+        // If no file in state, show empty state
+        const views = {
+            pdf: document.getElementById('pdf-viewer'),
+            wiki: document.getElementById('article-viewer'),
+            empty: document.getElementById('empty-state')
+        };
+        Object.values(views).forEach(el => el.classList.add('hidden'));
+        views.empty.style.display = 'flex';
+        document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+    }
+});
