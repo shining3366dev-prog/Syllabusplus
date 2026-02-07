@@ -1,6 +1,6 @@
 /**
  * SYLLABUS+ FILE EXPLORER ENGINE
- * Handles: File Tree, PDF Preview, Wiki Rendering, Math/Scratch Widgets, Sound Effects, and Navigation.
+ * Fixed auto-select implementation with default first file loading
  */
 
 // --- CONFIGURATION ---
@@ -33,9 +33,7 @@ function getSubjectFromURL() {
 }
 
 function getFileFromURL() {
-    const raw = new URLSearchParams(window.location.search).get('file');
-    // Don't decode here - the browser already does it for us
-    return raw;
+    return new URLSearchParams(window.location.search).get('file');
 }
 
 function playSound(type) {
@@ -200,6 +198,12 @@ async function loadFiles(isSilent = false) {
 
     if (!isSilent && treeContainer) {
         treeContainer.innerHTML = '<p style="padding:20px; opacity:0.5;">Loading...</p>';
+        
+        // Show empty state while loading
+        const emptyState = document.getElementById('empty-state');
+        if (emptyState && !fileToAutoLoad) {
+            emptyState.style.display = 'flex';
+        }
     }
 
     const FILES_URL = `${BASE_URL}/subject-files.csv?t=${Date.now()}`;
@@ -229,7 +233,7 @@ async function loadFiles(isSilent = false) {
             }
         });
 
-        // 2. FETCH TITLES (Wait for this to finish completely)
+        // 2. FETCH TITLES
         const titlePromises = filesToFetch.map(async (file) => {
             if (!file.link.endsWith('.json')) {
                 return { ...file, title: file.link };
@@ -276,17 +280,91 @@ async function loadFiles(isSilent = false) {
             titleElement.innerText = translateSubjectTitle(currentSubject);
         }
 
-        // 5. AUTO-SELECT FILE (COROUTINE APPROACH)
-        if (fileToAutoLoad && !isSilent) {
-            await autoSelectFile(fileToAutoLoad, treeContainer);
+        // 5. AUTO-SELECT FILE - IMPROVED APPROACH
+        if (!isSilent) {
+            console.log("✓ Auto-load enabled (not silent mode)");
+            // Use requestAnimationFrame to ensure DOM is fully rendered
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    let targetFile = null;
+                    
+                    console.log("🔍 Starting auto-load process...");
+                    console.log("📊 Total files available:", window.currentFilesList.length);
+                    
+                    // Option A: Try to load file from URL parameter
+                    if (fileToAutoLoad) {
+                        console.log("🤖 Auto-loading file from URL:", fileToAutoLoad);
+                        const decoded = decodeURIComponent(fileToAutoLoad);
+                        console.log("Searching for:", decoded);
+                        
+                        // Try multiple matching strategies
+                        targetFile = window.currentFilesList.find(f => 
+                            f.link === decoded ||                    // Exact match
+                            f.link.endsWith(decoded) ||              // Ends with (e.g., "powers-scientific.json")
+                            f.link.includes(decoded) ||              // Contains
+                            f.link === `${decoded}` ||               // With potential path
+                            f.name === decoded ||                     // Match by name
+                            f.name.includes(decoded)                  // Name contains
+                        );
+                        
+                        if (targetFile) {
+                            console.log("✅ Found file from URL:", targetFile.link);
+                        } else {
+                            console.warn("❌ File not found in URL:", decoded);
+                            console.log("Available files:", window.currentFilesList.map(f => ({ name: f.name, link: f.link })));
+                        }
+                    }
+                    
+                    // Option B: If no URL param or file not found, load first available file
+                    if (!targetFile && window.currentFilesList.length > 0) {
+                        targetFile = window.currentFilesList[0];
+                        console.log("📄 Loading first file by default:", targetFile.link);
+                        console.log("📄 First file name:", targetFile.name);
+                    }
+                    
+                    // Load the target file
+                    if (targetFile) {
+                        console.log("🎯 Opening file:", targetFile.link);
+                        
+                        // Find the DOM element and expand folders
+                        const treeItem = document.querySelector(`.file-item[data-link="${targetFile.link}"]`);
+                        if (treeItem) {
+                            console.log("✅ Found DOM element for file");
+                            // Expand parent folders
+                            let parent = treeItem.parentElement;
+                            while (parent && parent !== treeContainer) {
+                                if (parent.tagName === 'DETAILS') {
+                                    parent.open = true;
+                                }
+                                parent = parent.parentElement;
+                            }
+                            
+                            // Scroll to it
+                            treeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } else {
+                            console.warn("⚠️ DOM element not found yet, but proceeding with previewFile");
+                        }
+                        
+                        // Call previewFile to display the content
+                        console.log("🚀 Calling previewFile()");
+                        previewFile(targetFile.link, treeItem);
+                    } else {
+                        console.error("❌ NO FILES AVAILABLE - Cannot auto-load");
+                        console.error("currentFilesList:", window.currentFilesList);
+                        console.error("totalFiles:", totalFiles);
+                    }
+                }, 400); // Increased delay to ensure DOM is ready
+            });
         } 
         else if (isSilent) {
-            // Language switch logic (restore state)
+            console.log("⊘ Auto-load skipped (silent mode - language switch)");
+            // Language switch logic
             const activeLink = document.getElementById('article-viewer')?.getAttribute('data-current-file');
             if (activeLink) {
-                await new Promise(r => setTimeout(r, 50));
-                const activeItem = document.querySelector(`.file-item[data-link="${activeLink}"]`);
-                if (activeItem) activeItem.classList.add('active');
+                setTimeout(() => {
+                    const activeItem = document.querySelector(`.file-item[data-link="${activeLink}"]`);
+                    if (activeItem) activeItem.classList.add('active');
+                }, 50);
             }
         }
 
@@ -294,112 +372,6 @@ async function loadFiles(isSilent = false) {
         console.error('File Load Error:', err);
         if (treeContainer) treeContainer.innerHTML = `<p style="color:red;">Error loading files.</p>`;
     }
-}
-
-// --- NEW: DEDICATED AUTO-SELECT COROUTINE ---
-async function autoSelectFile(fileToAutoLoad, treeContainer) {
-    console.log("🤖 AUTO-SELECT STARTED");
-    console.log("🔍 Raw file param:", fileToAutoLoad);
-    
-    // Decode the URL parameter
-    const decoded = decodeURIComponent(fileToAutoLoad);
-    console.log("🔍 Decoded file param:", decoded);
-
-    // A. Find file in data - Try exact match first, then flexible matching
-    let targetFile = window.currentFilesList.find(f => f.link === decoded);
-    
-    if (!targetFile) {
-        console.log("🔄 Exact match failed, trying flexible matching...");
-        targetFile = window.currentFilesList.find(f => 
-            f.link.endsWith(decoded) || 
-            f.link.split('/').pop() === decoded ||
-            decoded.endsWith(f.link) ||
-            f.link.includes(decoded)
-        );
-    }
-
-    if (!targetFile) {
-        console.error("❌ FILE NOT FOUND IN DATA");
-        console.log("Searched for:", decoded);
-        console.log("Available:", window.currentFilesList.map(f => f.link));
-        return;
-    }
-
-    console.log("✅ File found in data:", targetFile.link);
-
-    // B. CRITICAL: Wait for DOM to be FULLY rendered
-    // We need to wait for the tree to be completely built before we can find elements
-    console.log("⏳ Waiting for file tree to render...");
-    
-    // Wait for initial render
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    // Wait for multiple animation frames to ensure everything is painted
-    for (let i = 0; i < 5; i++) {
-        await new Promise(resolve => requestAnimationFrame(resolve));
-    }
-    
-    // Extra wait for safety
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    console.log("🔎 Searching for DOM element with data-link:", targetFile.link);
-    
-    // C. Find the UI element
-    let treeItem = document.querySelector(`.file-item[data-link="${targetFile.link}"]`);
-    
-    // D. If not found, manually search through all items
-    if (!treeItem) {
-        console.log("🔄 Direct selector failed, searching all items...");
-        const allItems = document.querySelectorAll('.file-item');
-        console.log("Total .file-item elements:", allItems.length);
-        
-        allItems.forEach((item, i) => {
-            const link = item.getAttribute('data-link');
-            console.log(`  [${i}] data-link="${link}"`);
-            if (link === targetFile.link) {
-                treeItem = item;
-                console.log(`  ✅ MATCH at index ${i}`);
-            }
-        });
-    }
-
-    if (!treeItem) {
-        console.error("❌ TREE ITEM NOT FOUND IN DOM");
-        console.log("Expected data-link:", targetFile.link);
-        console.log("This means the tree hasn't rendered yet or the file isn't in the tree");
-        return;
-    }
-
-    console.log("✅ Tree item element found:", treeItem);
-
-    // E. Expand parent folders so the item is visible
-    console.log("📂 Expanding parent folders...");
-    let parent = treeItem.parentElement;
-    while (parent && parent !== treeContainer) {
-        if (parent.tagName === 'DETAILS') {
-            parent.open = true;
-        }
-        parent = parent.parentElement;
-    }
-
-    // F. Wait for folder expansion animations
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // G. Scroll the item into view
-    console.log("📜 Scrolling to item...");
-    treeItem.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'center'
-    });
-
-    // Wait for scroll to finish
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    // H. **SIMULATE A REAL USER CLICK** (this is the key!)
-    console.log("🖱️ Simulating user click on the file item...");
-    treeItem.click();
-    
-    console.log("✅ AUTO-SELECT COMPLETE - File should be loading now");
 }
 
 // --- YEAR DROPDOWN ---
@@ -448,11 +420,13 @@ window.previewFile = (url, element) => {
         if (views.wiki) views.wiki.scrollTop = 0; 
     }
 
+    // Hide all views
     Object.values(views).forEach(el => {
         if (el) el.classList.add('hidden');
     });
     if (views.empty) views.empty.style.display = 'none';
 
+    // Update active state
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     
     if (!element) {
@@ -462,10 +436,9 @@ window.previewFile = (url, element) => {
     if (element) {
         element.classList.add('active');
         console.log('✅ File item marked as active');
-    } else {
-        console.warn('⚠️ No element to mark as active');
     }
 
+    // Mobile view handling
     if (window.innerWidth <= 768) {
         const wrapper = document.querySelector('.explorer-wrapper');
         if (wrapper) wrapper.classList.add('preview-mode');
@@ -478,6 +451,7 @@ window.previewFile = (url, element) => {
     const newUrl = `files.html?subject=${encodeURIComponent(currentSubject)}&lang=${currentLang}&file=${encodeURIComponent(fileName)}`;
     window.history.pushState({ file: url }, '', newUrl);
 
+    // Load content
     if (url.endsWith('.json')) {
         if (views.wiki) views.wiki.classList.remove('hidden');
         renderWiki(`${BASE_URL}/articles_data/${url}`, url);
@@ -959,7 +933,14 @@ function renderTree(structure) {
 }
 
 // --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', loadFiles);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("=== PAGE LOADED ===");
+    console.log("Subject:", getSubjectFromURL());
+    console.log("Language:", getLangFromURL());
+    console.log("File param:", getFileFromURL());
+    console.log("Starting loadFiles()...");
+    loadFiles();
+});
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', (event) => {
