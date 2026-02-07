@@ -1,6 +1,9 @@
 /* =========================================
    FILES.CSS - File Explorer & PDF Viewer
    ========================================= */
+html {
+    overflow-anchor: none; /* Disables browser-default jumps */
+}
 /* --- LAYOUT WRAPPER (Updated for Natural Scroll) --- */
 .explorer-wrapper {
     display: flex;
@@ -143,6 +146,8 @@
 
 /* 2. Set up the file item to hold its own lines */
 .file-item {
+    cursor: pointer;
+    user-select: none;
     position: relative;
     padding: 10px 0;
     padding-left: 10px;
@@ -311,12 +316,18 @@
 }
 
 /* --- ARTICLE VIEWER --- */
+#article-viewer {
+    overflow-anchor: auto; /* Keeps the user's eyes on the same content */
+    min-height: 100vh;     /* Prevents height collapse */
+}
 .article-viewer {
     padding: 60px 50px; 
     overflow-y: auto;
     background: #fff;
     height: 100%;
+    scroll-behavior: auto !important; /* Disables smooth scroll during JS updates */
 }
+
 
 .article-viewer.hidden {
     display: none;
