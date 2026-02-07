@@ -4,40 +4,13 @@
  */
 
 // --- CONFIGURATION ---
-// UI_STRINGS now comes from window.I18N_DATA loaded via localisation.csv
 function getUIString(key, lang) {
     return window.I18N_DATA?.[key]?.[lang] || key;
 }
 
 const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const BASE_URL = IS_LOCAL ? '../Syllabusplus-Database' : 'https://shining3366dev-prog.github.io/Syllabusplus-Database';
-// --- AUTO-ADD LANGUAGE TO ALL LINKS ---
-function updateLinksWithLanguage() {
-    const lang = getLangFromURL();
-    
-    // Update all internal links
-    document.querySelectorAll('a[href^="index.html"], a[href^="files.html"]').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href && !href.includes('lang=')) {
-            const separator = href.includes('?') ? '&' : '?';
-            link.setAttribute('href', `${href}${separator}lang=${lang}`);
-        }
-    });
-}
 
-// Call this in loadLayout() after injecting HTML
-function loadLayout() {
-    document.body.insertAdjacentHTML('afterbegin', headerHTML);
-    document.body.insertAdjacentHTML('beforeend', footerHTML);
-    
-    // ... existing code ...
-    
-    // Update all links with current language
-    updateLinksWithLanguage();
-    
-    initLocalisation();
-}
-// Make BASE_URL globally accessible
 window.BASE_URL = BASE_URL;
 window.quizzes = window.quizzes || {};
 
@@ -59,6 +32,12 @@ function getSubjectFromURL() {
     return new URLSearchParams(window.location.search).get('subject');
 }
 
+function getFileFromURL() {
+    const raw = new URLSearchParams(window.location.search).get('file');
+    // Don't decode here - the browser already does it for us
+    return raw;
+}
+
 function playSound(type) {
     try {
         const audio = new Audio(QUIZ_SOUNDS[type]);
@@ -68,7 +47,7 @@ function playSound(type) {
         console.warn("Sound error:", e); 
     }
 }
-// --- TRANSLATE SUBJECT TITLE ---
+
 function translateSubjectTitle(subjectName) {
     const lang = getLangFromURL();
     const subjectKey = `subject_${subjectName.toLowerCase().replace(/\s+/g, '_')}`;
@@ -105,14 +84,12 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
             const section = sections[index];
             const getField = (base) => sectionData[`${base}_${langCode}`] || sectionData[base] || '';
             
-            // Update heading
             const heading = section.querySelector('h2');
             const headingText = getField('heading');
             if (heading && headingText) {
                 heading.textContent = headingText;
             }
             
-            // Update content based on type
             switch(sectionData.type) {
                 case 'intro':
                 case 'text':
@@ -183,10 +160,8 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
             }
         });
         
-        // 4. Update current language attribute
         container.setAttribute('data-current-lang', langCode);
         
-        // 5. Restore scroll position
         requestAnimationFrame(() => {
             container.scrollTop = scrollPos;
         });
@@ -200,6 +175,8 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
 async function loadFiles(isSilent = false) {
     const currentSubject = getSubjectFromURL();
     const currentLang = getLangFromURL();
+    const fileToAutoLoad = getFileFromURL(); 
+    
     const titleElement = document.getElementById('subject-title');
     const treeContainer = document.getElementById('file-tree');
     
@@ -208,10 +185,7 @@ async function loadFiles(isSilent = false) {
         return;
     }
     
-    // Set a temporary title immediately
-    if (titleElement) {
-        titleElement.innerText = currentSubject;
-    }
+    if (titleElement) titleElement.innerText = currentSubject;
 
     const availableYears = await setupYearDropdown(currentSubject);
 
@@ -231,15 +205,15 @@ async function loadFiles(isSilent = false) {
     const FILES_URL = `${BASE_URL}/subject-files.csv?t=${Date.now()}`;
     
     try {
+        // 1. FETCH DATA
         const res = await fetch(FILES_URL);
         const csvText = await res.text();
         const rows = csvText.split('\n').slice(1);
         
         let totalFiles = 0;
         const fileStructure = {};
-        window.currentFilesList = [];
+        window.currentFilesList = []; 
 
-        // NEW: Collect all JSON files to fetch titles
         const filesToFetch = [];
 
         rows.forEach(row => {
@@ -251,38 +225,32 @@ async function loadFiles(isSilent = false) {
 
                 totalFiles++;
                 const folders = path ? path.split(/[/\\]/).filter(f => f.trim()) : []; 
-                
                 filesToFetch.push({ folders, link });
             }
         });
 
-        // NEW: Fetch all JSON titles in parallel
+        // 2. FETCH TITLES (Wait for this to finish completely)
         const titlePromises = filesToFetch.map(async (file) => {
             if (!file.link.endsWith('.json')) {
                 return { ...file, title: file.link };
             }
-
             try {
                 const jsonRes = await fetch(`${BASE_URL}/articles_data/${file.link}`);
                 if (!jsonRes.ok) throw new Error();
                 const jsonData = await jsonRes.json();
-                
-                // Get title based on current language
                 const title = jsonData[`title_${currentLang}`] || jsonData.title || file.link;
                 return { ...file, title };
             } catch (err) {
-                console.warn(`Failed to load title for ${file.link}`);
                 return { ...file, title: file.link.replace('.json', '') };
             }
         });
 
         const filesWithTitles = await Promise.all(titlePromises);
 
-        // Build the tree structure with proper titles
+        // 3. BUILD TREE DATA
         filesWithTitles.forEach(file => {
             let current = fileStructure;
             file.folders.forEach(folder => {
-                // Translate folder name
                 const folderKey = `folder_${folder.toLowerCase().replace(/\s+/g, '_')}`;
                 const translatedFolder = window.I18N_DATA?.[folderKey]?.[currentLang] || folder;
                 
@@ -297,48 +265,141 @@ async function loadFiles(isSilent = false) {
             window.currentFilesList.push(fileObj);
         });
 
+        // 4. RENDER TREE TO DOM
         if (totalFiles === 0) {
-            const lang = getLangFromURL();
-            const noContentMsg = window.I18N_DATA?.['no_content']?.[lang] || 'No content found for';
-            treeContainer.innerHTML = `<p style="padding:20px; font-style:italic; color:#666;">${noContentMsg} ${savedYear}.</p>`;
+            treeContainer.innerHTML = `<p style="padding:20px; font-style:italic; color:#666;">No content found.</p>`;
         } else {
             treeContainer.innerHTML = renderTree(fileStructure);
         }
 
-        // Update the translated title AFTER everything loads
         if (titleElement) {
-            const translatedSubject = translateSubjectTitle(currentSubject);
-            titleElement.innerText = translatedSubject;
+            titleElement.innerText = translateSubjectTitle(currentSubject);
         }
 
-        // Restore active file highlight after language switch
-        if (isSilent) {
+        // 5. AUTO-SELECT FILE (COROUTINE APPROACH)
+        if (fileToAutoLoad && !isSilent) {
+            await autoSelectFile(fileToAutoLoad, treeContainer);
+        } 
+        else if (isSilent) {
+            // Language switch logic (restore state)
             const activeLink = document.getElementById('article-viewer')?.getAttribute('data-current-file');
             if (activeLink) {
+                await new Promise(r => setTimeout(r, 50));
                 const activeItem = document.querySelector(`.file-item[data-link="${activeLink}"]`);
                 if (activeItem) activeItem.classList.add('active');
-            }
-        }
-        
-        // NEW: Check if there's a file parameter in the URL and load it
-        const urlParams = new URLSearchParams(window.location.search);
-        const fileToLoad = urlParams.get('file');
-        if (fileToLoad && !isSilent) {
-            // Find the file in the list and preview it
-            const fileItem = window.currentFilesList.find(f => f.link === fileToLoad);
-            if (fileItem) {
-                setTimeout(() => previewFile(fileToLoad), 100);
             }
         }
 
     } catch (err) {
         console.error('File Load Error:', err);
-        if (treeContainer) {
-            const lang = getLangFromURL();
-            const errorMsg = window.I18N_DATA?.['error_loading']?.[lang] || 'Error loading files.';
-            treeContainer.innerHTML = `<p style="padding:20px; color:red;">${errorMsg}</p>`;
-        }
+        if (treeContainer) treeContainer.innerHTML = `<p style="color:red;">Error loading files.</p>`;
     }
+}
+
+// --- NEW: DEDICATED AUTO-SELECT COROUTINE ---
+async function autoSelectFile(fileToAutoLoad, treeContainer) {
+    console.log("🤖 AUTO-SELECT STARTED");
+    console.log("🔍 Raw file param:", fileToAutoLoad);
+    
+    // Decode the URL parameter
+    const decoded = decodeURIComponent(fileToAutoLoad);
+    console.log("🔍 Decoded file param:", decoded);
+
+    // A. Find file in data - Try exact match first, then flexible matching
+    let targetFile = window.currentFilesList.find(f => f.link === decoded);
+    
+    if (!targetFile) {
+        console.log("🔄 Exact match failed, trying flexible matching...");
+        targetFile = window.currentFilesList.find(f => 
+            f.link.endsWith(decoded) || 
+            f.link.split('/').pop() === decoded ||
+            decoded.endsWith(f.link) ||
+            f.link.includes(decoded)
+        );
+    }
+
+    if (!targetFile) {
+        console.error("❌ FILE NOT FOUND IN DATA");
+        console.log("Searched for:", decoded);
+        console.log("Available:", window.currentFilesList.map(f => f.link));
+        return;
+    }
+
+    console.log("✅ File found in data:", targetFile.link);
+
+    // B. CRITICAL: Wait for DOM to be FULLY rendered
+    // We need to wait for the tree to be completely built before we can find elements
+    console.log("⏳ Waiting for file tree to render...");
+    
+    // Wait for initial render
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Wait for multiple animation frames to ensure everything is painted
+    for (let i = 0; i < 5; i++) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+    
+    // Extra wait for safety
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    console.log("🔎 Searching for DOM element with data-link:", targetFile.link);
+    
+    // C. Find the UI element
+    let treeItem = document.querySelector(`.file-item[data-link="${targetFile.link}"]`);
+    
+    // D. If not found, manually search through all items
+    if (!treeItem) {
+        console.log("🔄 Direct selector failed, searching all items...");
+        const allItems = document.querySelectorAll('.file-item');
+        console.log("Total .file-item elements:", allItems.length);
+        
+        allItems.forEach((item, i) => {
+            const link = item.getAttribute('data-link');
+            console.log(`  [${i}] data-link="${link}"`);
+            if (link === targetFile.link) {
+                treeItem = item;
+                console.log(`  ✅ MATCH at index ${i}`);
+            }
+        });
+    }
+
+    if (!treeItem) {
+        console.error("❌ TREE ITEM NOT FOUND IN DOM");
+        console.log("Expected data-link:", targetFile.link);
+        console.log("This means the tree hasn't rendered yet or the file isn't in the tree");
+        return;
+    }
+
+    console.log("✅ Tree item element found:", treeItem);
+
+    // E. Expand parent folders so the item is visible
+    console.log("📂 Expanding parent folders...");
+    let parent = treeItem.parentElement;
+    while (parent && parent !== treeContainer) {
+        if (parent.tagName === 'DETAILS') {
+            parent.open = true;
+        }
+        parent = parent.parentElement;
+    }
+
+    // F. Wait for folder expansion animations
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // G. Scroll the item into view
+    console.log("📜 Scrolling to item...");
+    treeItem.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+    });
+
+    // Wait for scroll to finish
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // H. **SIMULATE A REAL USER CLICK** (this is the key!)
+    console.log("🖱️ Simulating user click on the file item...");
+    treeItem.click();
+    
+    console.log("✅ AUTO-SELECT COMPLETE - File should be loading now");
 }
 
 // --- YEAR DROPDOWN ---
@@ -372,6 +433,8 @@ window.updateFileYear = (year) => {
 
 // --- PREVIEW LOGIC ---
 window.previewFile = (url, element) => {
+    console.log('📄 previewFile() called with:', url);
+    
     const views = {
         pdf: document.getElementById('pdf-viewer'),
         wiki: document.getElementById('article-viewer'),
@@ -382,41 +445,57 @@ window.previewFile = (url, element) => {
 
     if (!isSameFile) {
         window.scrollTo(0, 0); 
-        views.wiki.scrollTop = 0; 
+        if (views.wiki) views.wiki.scrollTop = 0; 
     }
 
-    Object.values(views).forEach(el => el.classList.add('hidden'));
-    views.empty.style.display = 'none';
+    Object.values(views).forEach(el => {
+        if (el) el.classList.add('hidden');
+    });
+    if (views.empty) views.empty.style.display = 'none';
 
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-    if (!element) element = document.querySelector(`.file-item[data-link="${url}"]`);
-    if (element) element.classList.add('active');
+    
+    if (!element) {
+        element = document.querySelector(`.file-item[data-link="${url}"]`);
+    }
+    
+    if (element) {
+        element.classList.add('active');
+        console.log('✅ File item marked as active');
+    } else {
+        console.warn('⚠️ No element to mark as active');
+    }
 
     if (window.innerWidth <= 768) {
-        document.querySelector('.explorer-wrapper').classList.add('preview-mode');
+        const wrapper = document.querySelector('.explorer-wrapper');
+        if (wrapper) wrapper.classList.add('preview-mode');
     }
 
     // Update URL without page refresh
     const currentSubject = getSubjectFromURL();
     const currentLang = getLangFromURL();
-    const newUrl = `files.html?subject=${currentSubject}&lang=${currentLang}&file=${encodeURIComponent(url)}`;
+    const fileName = url.split('/').pop();
+    const newUrl = `files.html?subject=${encodeURIComponent(currentSubject)}&lang=${currentLang}&file=${encodeURIComponent(fileName)}`;
     window.history.pushState({ file: url }, '', newUrl);
 
     if (url.endsWith('.json')) {
-        views.wiki.classList.remove('hidden');
+        if (views.wiki) views.wiki.classList.remove('hidden');
         renderWiki(`${BASE_URL}/articles_data/${url}`, url);
     } else {
-        views.pdf.classList.remove('hidden');
-        views.pdf.src = `${url}#toolbar=0`;
+        if (views.pdf) {
+            views.pdf.classList.remove('hidden');
+            views.pdf.src = `${BASE_URL}/${url}#toolbar=0`;
+        }
     }
 };
 
 window.closePreview = () => {
     window.scrollTo(0, 0); 
-    document.querySelector('.explorer-wrapper').classList.remove('preview-mode');
+    const wrapper = document.querySelector('.explorer-wrapper');
+    if (wrapper) wrapper.classList.remove('preview-mode');
 };
 
-// --- NAVIGATION: BACK TO SUBJECTS ---
+// --- NAVIGATION ---
 window.backToSubjects = () => {
     const currentLang = getLangFromURL();
     window.location.href = `index.html?lang=${currentLang}#subjects`;
@@ -543,6 +622,7 @@ function renderSection(s, index, lang) {
                     </div>
                 </div>`;
             break;
+            
         case 'quiz':
             const qId = `quiz-sec-${index}`; 
             const quizTitle = getField('title') || getUIString('ui_quiz_title', lang);
@@ -588,7 +668,6 @@ window.renderQuizQuestion = function(quizId) {
     const header = container.querySelector('.quiz-header');
     const footer = container.querySelector('.quiz-footer');
     
-    // Show start screen if quiz hasn't started
     if (!data.started) {
         header.classList.add('hidden');
         footer.classList.add('hidden');
@@ -614,7 +693,6 @@ window.renderQuizQuestion = function(quizId) {
         return;
     }
     
-    // Show quiz header and footer once started
     header.classList.remove('hidden');
     footer.classList.remove('hidden');
     
@@ -851,7 +929,6 @@ function renderTree(structure) {
     Object.keys(structure).forEach(key => {
         if (key === '__FILES__') return;
         
-        // The key is already translated when the tree was built
         html += `
             <details class="folder-details" open>
                 <summary class="folder-summary">
@@ -887,17 +964,17 @@ document.addEventListener('DOMContentLoaded', loadFiles);
 // Handle browser back/forward buttons
 window.addEventListener('popstate', (event) => {
     if (event.state && event.state.file) {
-        // Reload the file from the URL
         previewFile(event.state.file);
     } else {
-        // If no file in state, show empty state
         const views = {
             pdf: document.getElementById('pdf-viewer'),
             wiki: document.getElementById('article-viewer'),
             empty: document.getElementById('empty-state')
         };
-        Object.values(views).forEach(el => el.classList.add('hidden'));
-        views.empty.style.display = 'flex';
+        Object.values(views).forEach(el => {
+            if (el) el.classList.add('hidden');
+        });
+        if (views.empty) views.empty.style.display = 'flex';
         document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     }
 });
