@@ -25,8 +25,8 @@
             
             <div class="sidebar-top">
                 <div class="sidebar-info">
-                    <h2 id="subject-title">Loading...</h2>
-                    <span class="badge">Resources</span>
+                    <h2 id="subject-title" data-i18n="page_loading">Loading...</h2>
+                    <span class="badge" data-i18n="page_resources">Resources</span>
                 </div>
 
                 <div class="year-select-wrapper sidebar-spacer">
@@ -35,13 +35,13 @@
                     <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
                 </div>
 
-                <a href="index.html" class="btn-back">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Subjects
+                <a href="#" class="btn-back" onclick="goBackToSubjects(event)">
+                    <i class="fa-solid fa-arrow-left"></i> <span data-i18n="back_to_subjects">Back to Subjects</span>
                 </a>
             </div>
             
             <div id="file-tree" class="file-tree-content">
-                <div class="loading-spinner">Loading files...</div>
+                <div class="loading-spinner" data-i18n="page_loading_files">Loading files...</div>
             </div>
         </aside>
 
@@ -49,7 +49,7 @@
             <div class="mobile-preview-header">
                 <button class="btn-back-to-list" onclick="closePreview()">
                     <i class="fa-solid fa-chevron-left"></i>
-                    <span>Back to Explorer</span>
+                    <span data-i18n="back_explorer">Back to Explorer</span>
                 </button>
             </div>
 
@@ -57,8 +57,8 @@
                 <div class="empty-icon-circle">
                     <i class="fa-regular fa-file-lines"></i>
                 </div>
-                <h3>Select a document</h3>
-                <p>Choose a file from the sidebar to preview it.</p>
+                <h3 data-i18n="select_document">Select a document</h3>
+                <p data-i18n="select_file_hint">Choose a file from the sidebar to preview it.</p>
             </div>
 
             <div id="article-viewer" class="article-viewer hidden"></div>

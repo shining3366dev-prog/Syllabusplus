@@ -1,5 +1,8 @@
 let allSubjects = [];
-
+function getLangFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('lang') || 'en';
+}
 // 1. Load Data
 function loadSubjects() {
     // Force fresh load from GitHub
@@ -131,9 +134,19 @@ function renderGrid(selectedYear) {
 
     // STEP 3: Render cards
     filteredSubjects.forEach(subject => {
-        const buttonText = subject.isAvailable ? 'View Files' : 'Coming Soon';
+        const lang = getLangFromURL();
+        
+        // Translate subject title
+        const subjectKey = `subject_${subject.title.toLowerCase().replace(/\s+/g, '_')}`;
+        const translatedTitle = window.I18N_DATA?.[subjectKey]?.[lang] || subject.title;
+        
+        // Translate button text
+        const buttonText = subject.isAvailable 
+            ? (window.I18N_DATA?.['view_files']?.[lang] || 'View Files')
+            : (window.I18N_DATA?.['coming_soon']?.[lang] || 'Coming Soon');
+        
         const linkHTML = subject.isAvailable 
-            ? `<button onclick="window.location.href='files.html?subject=${encodeURIComponent(subject.title)}'">${buttonText}</button>`
+            ? `<button onclick="window.location.href='files.html?subject=${encodeURIComponent(subject.title)}&lang=${lang}'">${buttonText}</button>`
             : `<button disabled>${buttonText}</button>`;
             
         let yearBadgeHTML = '';
@@ -154,7 +167,7 @@ function renderGrid(selectedYear) {
         card.innerHTML = `
             <div class="card-image" style="${backgroundStyle}"></div>
             <div class="card-text">
-                <h3>${subject.title}</h3>
+                <h3>${translatedTitle}</h3>
                 <p>${subject.desc || ''}</p>
                 ${yearBadgeHTML}
                 ${linkHTML}

@@ -4,15 +4,39 @@
  */
 
 // --- CONFIGURATION ---
-const UI_STRINGS = {
-    en: { next: "Next Question", skip: "Skip Question", results: "See Results", back: "Back to List", prev_nav: "Previous", next_nav: "Next", example: "Example", update: "Updating..." },
-    fr: { next: "Question Suivante", skip: "Passer", results: "Voir les Résultats", back: "Retour à la liste", prev_nav: "Précédent", next_nav: "Suivant", example: "Exemple", update: "Mise à jour..." },
-    de: { next: "Nächste Frage", skip: "Überspringen", results: "Ergebnisse sehen", back: "Zurück zur Liste", prev_nav: "Zurück", next_nav: "Weiter", example: "Beispiel", update: "Aktualisierung..." }
-};
+// UI_STRINGS now comes from window.I18N_DATA loaded via localisation.csv
+function getUIString(key, lang) {
+    return window.I18N_DATA?.[key]?.[lang] || key;
+}
 
 const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const BASE_URL = IS_LOCAL ? '../Syllabusplus-Database' : 'https://shining3366dev-prog.github.io/Syllabusplus-Database';
+// --- AUTO-ADD LANGUAGE TO ALL LINKS ---
+function updateLinksWithLanguage() {
+    const lang = getLangFromURL();
+    
+    // Update all internal links
+    document.querySelectorAll('a[href^="index.html"], a[href^="files.html"]').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && !href.includes('lang=')) {
+            const separator = href.includes('?') ? '&' : '?';
+            link.setAttribute('href', `${href}${separator}lang=${lang}`);
+        }
+    });
+}
 
+// Call this in loadLayout() after injecting HTML
+function loadLayout() {
+    document.body.insertAdjacentHTML('afterbegin', headerHTML);
+    document.body.insertAdjacentHTML('beforeend', footerHTML);
+    
+    // ... existing code ...
+    
+    // Update all links with current language
+    updateLinksWithLanguage();
+    
+    initLocalisation();
+}
 // Make BASE_URL globally accessible
 window.BASE_URL = BASE_URL;
 window.quizzes = window.quizzes || {};
@@ -44,13 +68,18 @@ function playSound(type) {
         console.warn("Sound error:", e); 
     }
 }
+// --- TRANSLATE SUBJECT TITLE ---
+function translateSubjectTitle(subjectName) {
+    const lang = getLangFromURL();
+    const subjectKey = `subject_${subjectName.toLowerCase().replace(/\s+/g, '_')}`;
+    return window.I18N_DATA?.[subjectKey]?.[lang] || subjectName;
+}
 
 // --- LANGUAGE UPDATE FUNCTION ---
 window.updateArticleLanguage = async function(fileLink, langCode) {
     const container = document.getElementById('article-viewer');
     if (!container) return;
     
-    const labels = UI_STRINGS[langCode] || UI_STRINGS.en;
     const scrollPos = container.scrollTop;
     
     try {
@@ -106,7 +135,7 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
                     const exampleBox = section.querySelector('.example-box');
                     const exampleContent = getField('content');
                     if (exampleBox && exampleContent) {
-                        exampleBox.innerHTML = `<strong>${labels.example}:</strong> ${parseInlineMath(exampleContent)}`;
+                        exampleBox.innerHTML = `<strong>${getUIString('ui_example', langCode)}:</strong> ${parseInlineMath(exampleContent)}`;
                     }
                     break;
                     
@@ -146,11 +175,11 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
         navButtons.forEach(label => {
             const text = label.textContent.trim().toLowerCase();
             if (text.includes('previous') || text.includes('précédent') || text.includes('zurück')) {
-                label.textContent = labels.prev_nav;
+                label.textContent = getUIString('ui_prev_nav', langCode);
             } else if (text.includes('next') || text.includes('suivant') || text.includes('weiter')) {
-                label.textContent = labels.next_nav;
+                label.textContent = getUIString('ui_next_nav', langCode);
             } else if (text.includes('back') || text.includes('retour')) {
-                label.textContent = labels.back;
+                label.textContent = getUIString('ui_back', langCode);
             }
         });
         
@@ -179,7 +208,10 @@ async function loadFiles(isSilent = false) {
         return;
     }
     
-    if (titleElement) titleElement.innerText = currentSubject;
+    if (titleElement) {
+    const translatedSubject = translateSubjectTitle(currentSubject);
+    titleElement.innerText = translatedSubject;
+    }
 
     const availableYears = await setupYearDropdown(currentSubject);
 
@@ -250,8 +282,12 @@ async function loadFiles(isSilent = false) {
         filesWithTitles.forEach(file => {
             let current = fileStructure;
             file.folders.forEach(folder => {
-                if (!current[folder]) current[folder] = {};
-                current = current[folder];
+                // Translate folder name
+                const folderKey = `folder_${folder.toLowerCase().replace(/\s+/g, '_')}`;
+                const translatedFolder = window.I18N_DATA?.[folderKey]?.[currentLang] || folder;
+                
+                if (!current[translatedFolder]) current[translatedFolder] = {};
+                current = current[translatedFolder];
             });
             
             if (!current['__FILES__']) current['__FILES__'] = [];
@@ -262,7 +298,9 @@ async function loadFiles(isSilent = false) {
         });
 
         if (totalFiles === 0) {
-            treeContainer.innerHTML = `<p style="padding:20px; font-style:italic; color:#666;">No content found for ${savedYear}.</p>`;
+            const lang = getLangFromURL();
+            const noContentMsg = window.I18N_DATA?.['no_content']?.[lang] || 'No content found for';
+            treeContainer.innerHTML = `<p style="padding:20px; font-style:italic; color:#666;">${noContentMsg} ${savedYear}.</p>`;
         } else {
             treeContainer.innerHTML = renderTree(fileStructure);
         }
@@ -279,7 +317,9 @@ async function loadFiles(isSilent = false) {
     } catch (err) {
         console.error('File Load Error:', err);
         if (treeContainer) {
-            treeContainer.innerHTML = `<p style="padding:20px; color:red;">Error loading files.</p>`;
+            const lang = getLangFromURL();
+            const errorMsg = window.I18N_DATA?.['error_loading']?.[lang] || 'Error loading files.';
+            treeContainer.innerHTML = `<p style="padding:20px; color:red;">${errorMsg}</p>`;
         }
     }
 }
@@ -295,9 +335,12 @@ async function setupYearDropdown(subjectName) {
         const row = rows.find(r => r.split(';')[0]?.trim().toLowerCase() === subjectName.toLowerCase());
         if (!row || !dropdown) return [];
         const years = row.split(';')[5]?.trim().split(',').map(y => y.trim()) || [];
+        const lang = getLangFromURL();
+        const allYearsLabel = window.I18N_DATA?.['all_years']?.[lang] || 'All Years';
+        const yearLabel = window.I18N_DATA?.['year_label']?.[lang] || 'Year';
         dropdown.innerHTML = '';
-        if (years.length > 1) dropdown.add(new Option("All Years", "ALL"));
-        years.forEach(y => dropdown.add(new Option(`${y} (Year ${y.replace('S','')})`, y)));
+        if (years.length > 1) dropdown.add(new Option(allYearsLabel, "ALL"));
+        years.forEach(y => dropdown.add(new Option(`${y} (${yearLabel} ${y.replace('S','')})`, y)));
         return years;
     } catch (e) { 
         console.error(e); 
@@ -350,6 +393,18 @@ window.closePreview = () => {
     document.querySelector('.explorer-wrapper').classList.remove('preview-mode');
 };
 
+// --- NAVIGATION: BACK TO SUBJECTS ---
+window.backToSubjects = () => {
+    const currentLang = getLangFromURL();
+    window.location.href = `index.html?lang=${currentLang}#subjects`;
+};
+
+window.goBackToSubjects = (event) => {
+    if (event) event.preventDefault();
+    const currentLang = getLangFromURL();
+    window.location.href = `index.html?lang=${currentLang}#subjects`;
+};
+
 // --- WIKI RENDERER ---
 async function renderWiki(url, originalFilename) {
     const container = document.getElementById('article-viewer');
@@ -382,14 +437,13 @@ async function renderWiki(url, originalFilename) {
         const idx = window.currentFilesList.findIndex(f => f.link === originalFilename);
         const prev = window.currentFilesList[idx - 1];
         const next = window.currentFilesList[idx + 1];
-        const labels = UI_STRINGS[currentLang] || UI_STRINGS.en;
 
         const displayTitle = data[`title_${currentLang}`] || data.title;
 
         let navHtml = `<div class="article-navigation"><div class="nav-top-row">`;
-        navHtml += prev ? `<button class="nav-btn prev" onclick="previewFile('${prev.link}')"><i class="fa-solid fa-arrow-left"></i><div class="nav-info"><span>${labels.prev_nav}</span><span class="nav-title">${prev.name}</span></div></button>` : `<div class="nav-spacer"></div>`;
-        navHtml += next ? `<button class="nav-btn next" onclick="previewFile('${next.link}')"><div class="nav-info"><span>${labels.next_nav}</span><span class="nav-title">${next.name}</span></div><i class="fa-solid fa-arrow-right"></i></button>` : `<div class="nav-spacer"></div>`;
-        navHtml += `</div><button class="nav-btn bottom-explorer-btn mobile-only" onclick="closePreview()"><i class="fa-solid fa-chevron-left"></i><div class="nav-info"><span>${labels.back}</span><span class="nav-title">Explorer</span></div></button></div>`;
+        navHtml += prev ? `<button class="nav-btn prev" onclick="previewFile('${prev.link}')"><i class="fa-solid fa-arrow-left"></i><div class="nav-info"><span>${getUIString('ui_prev_nav', currentLang)}</span><span class="nav-title">${prev.name}</span></div></button>` : `<div class="nav-spacer"></div>`;
+        navHtml += next ? `<button class="nav-btn next" onclick="previewFile('${next.link}')"><div class="nav-info"><span>${getUIString('ui_next_nav', currentLang)}</span><span class="nav-title">${next.name}</span></div><i class="fa-solid fa-arrow-right"></i></button>` : `<div class="nav-spacer"></div>`;
+        navHtml += `</div><button class="nav-btn bottom-explorer-btn mobile-only" onclick="backToSubjects()"><i class="fa-solid fa-chevron-left"></i><div class="nav-info"><span>${getUIString('ui_back', currentLang)}</span><span class="nav-title">Explorer</span></div></button></div>`;
 
         container.innerHTML = `
             <div class="wiki-container">
@@ -420,7 +474,6 @@ function renderSection(s, index, lang) {
     const getField = (base) => s[`${base}_${lang}`] || s[base] || '';
     const heading = getField('heading');
     const content = parseInlineMath(getField('content'));
-    const labels = UI_STRINGS[lang] || UI_STRINGS.en;
     
     let html = `<section class="wiki-section">`;
     if (heading) html += `<h2>${heading}</h2>`;
@@ -437,7 +490,7 @@ function renderSection(s, index, lang) {
             break;
             
         case 'example':
-            html += `<div class="example-box"><strong>${labels.example}:</strong> ${content}</div>`; 
+            html += `<div class="example-box"><strong>${getUIString('ui_example', lang)}:</strong> ${content}</div>`; 
             break;
 
         case 'scratch':
@@ -499,7 +552,6 @@ window.renderQuizQuestion = function(quizId) {
     if (!data) return;
     
     const lang = getLangFromURL();
-    const labels = UI_STRINGS[lang] || UI_STRINGS.en;
     
     const q = data.questions[data.currentQ];
     const body = document.getElementById(`${quizId}-body`);
@@ -507,7 +559,7 @@ window.renderQuizQuestion = function(quizId) {
     const progressText = document.querySelector(`#${quizId} .quiz-progress-text`);
     const progressFill = document.querySelector(`#${quizId} .quiz-progress-fill`);
 
-    const qLabel = { en: "Question", fr: "Question", de: "Frage" }[lang] || "Question";
+    const qLabel = getUIString('ui_question', lang);
     if (progressText) progressText.innerText = `${qLabel} ${data.currentQ + 1} / ${data.total}`;
     
     const progressPercent = (data.currentQ / data.total) * 100;
@@ -515,7 +567,7 @@ window.renderQuizQuestion = function(quizId) {
 
     if (nextBtn) {
         nextBtn.classList.remove('hidden');
-        nextBtn.innerHTML = `${labels.skip} <i class="fa-solid fa-forward"></i>`;
+        nextBtn.innerHTML = `${getUIString('ui_skip', lang)} <i class="fa-solid fa-forward"></i>`;
         nextBtn.dataset.answered = "false";
     }
 
@@ -535,7 +587,6 @@ window.renderQuizQuestion = function(quizId) {
 window.handleAnswer = function(quizId, btn, isCorrect) {
     const data = window.quizzes[quizId];
     const lang = getLangFromURL(); 
-    const labels = UI_STRINGS[lang] || UI_STRINGS.en;
     
     const container = document.getElementById(quizId);
     const allBtns = container.querySelectorAll('.quiz-option-btn');
@@ -568,9 +619,9 @@ window.handleAnswer = function(quizId, btn, isCorrect) {
     if (nextBtn) {
         nextBtn.dataset.answered = "true";
         if (data.currentQ === data.total - 1) {
-            nextBtn.innerHTML = `${labels.results} <i class="fa-solid fa-trophy"></i>`;
+            nextBtn.innerHTML = `${getUIString('ui_results', lang)} <i class="fa-solid fa-trophy"></i>`;
         } else {
-            nextBtn.innerHTML = `${labels.next} <i class="fa-solid fa-arrow-right"></i>`;
+            nextBtn.innerHTML = `${getUIString('ui_next', lang)} <i class="fa-solid fa-arrow-right"></i>`;
         }
     }
 };
@@ -611,26 +662,30 @@ window.resetQuiz = function(quizId) {
 
 window.showQuizResults = function(quizId) {
     const lang = getLangFromURL();
-    const tryAgainLabel = { en: "Try Again", fr: "Réessayer", de: "Erneut versuchen" }[lang];
     const data = window.quizzes[quizId];
     const container = document.getElementById(quizId);
     const percentage = Math.round((data.score / data.total) * 100);
     
     let color = '#e74c3c';
-    let msg = "Keep practicing!";
+    let msg = getUIString('ui_keep_practicing', lang) || "Keep practicing!";
     
     if (percentage >= 50) { 
         playSound('win'); 
         color = '#f1c40f';
-        msg = "Good job!"; 
+        msg = getUIString('ui_good_job', lang) || "Good job!"; 
     } else {
         playSound('lose');
     }
     
     if (percentage >= 80) { 
         color = '#2ecc71';
-        msg = "Outstanding!"; 
+        msg = getUIString('ui_outstanding', lang) || "Outstanding!"; 
     }
+
+    const tryAgainLabel = getUIString('ui_try_again', lang) || "Try Again";
+    const youGotLabel = getUIString('ui_you_got', lang) || "You got";
+    const outOfLabel = getUIString('ui_out_of', lang) || "out of";
+    const correctLabel = getUIString('ui_correct', lang) || "correct";
 
     container.innerHTML = `
         <div class="quiz-results-screen">
@@ -645,7 +700,7 @@ window.showQuizResults = function(quizId) {
                 <div class="loader-text">0%</div>
             </div>
             <h2>${msg}</h2>
-            <p>You got ${data.score} out of ${data.total} correct.</p>
+            <p>${youGotLabel} ${data.score} ${outOfLabel} ${data.total} ${correctLabel}.</p>
             <button class="btn-restart" onclick="resetQuiz('${quizId}')">${tryAgainLabel}</button>
         </div>
     `;
@@ -722,6 +777,8 @@ function renderTree(structure) {
     
     Object.keys(structure).forEach(key => {
         if (key === '__FILES__') return;
+        
+        // The key is already translated when the tree was built
         html += `
             <details class="folder-details" open>
                 <summary class="folder-summary">

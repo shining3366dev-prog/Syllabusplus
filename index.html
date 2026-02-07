@@ -6,44 +6,40 @@
     <title>Syllabus+ - Home</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 </head>
 <body>
-
     <div class="main-content">
-        
         <section class="hero">
             <div class="hero-content">
-                <h1>Student Resource Center</h1>
-                <p>Access study guides, worksheets, and past papers.</p>
-                <a href="#subjects" class="cta-button">Find Your Subject</a>
+                <h1 data-i18n="hero_title">Student Resource Center</h1>
+                <p data-i18n="hero_desc">Access study guides, worksheets, and past papers.</p>
+                <a href="#subjects" class="cta-button" data-i18n="cta_find">Find Your Subject</a>
             </div>
         </section>
-
+        
         <div class="app-layout" id="subjects">
-            
             <aside class="sidebar-filter">
                 <div class="sidebar-header-internal">
-                    <h3>Select Year</h3>
-                    <p class="filter-subtitle">Filter by year level</p>
+                    <h3 data-i18n="sidebar_year">Select Year</h3>
+                    <p class="filter-subtitle" data-i18n="sidebar_subtitle">Filter by year level</p>
                 </div>
                 
                 <div class="year-buttons desktop-view">
                     <button class="year-btn active" onclick="filterYear('ALL')">
-                        <i class="fa-solid fa-layer-group"></i> All Years
+                        <i class="fa-solid fa-layer-group"></i> <span data-i18n="sidebar_all">All Years</span>
                     </button>
-                    <button class="year-btn" onclick="filterYear('S1')">S1 (Year 1)</button>
-                    <button class="year-btn" onclick="filterYear('S2')">S2 (Year 2)</button>
-                    <button class="year-btn" onclick="filterYear('S3')">S3 (Year 3)</button>
-                    <button class="year-btn" onclick="filterYear('S4')">S4 (Year 4)</button>
-                    <button class="year-btn" onclick="filterYear('S5')">S5 (Year 5)</button>
-                    <button class="year-btn" onclick="filterYear('S6')">S6 (Year 6)</button>
-                    <button class="year-btn" onclick="filterYear('S7')">S7 (Year 7)</button>
+                    <button class="year-btn" onclick="filterYear('S1')">S1 (<span data-i18n="year_label">Year</span> 1)</button>
+                    <button class="year-btn" onclick="filterYear('S2')">S2 (<span data-i18n="year_label">Year</span> 2)</button>
+                    <button class="year-btn" onclick="filterYear('S3')">S3 (<span data-i18n="year_label">Year</span> 3)</button>
+                    <button class="year-btn" onclick="filterYear('S4')">S4 (<span data-i18n="year_label">Year</span> 4)</button>
+                    <button class="year-btn" onclick="filterYear('S5')">S5 (<span data-i18n="year_label">Year</span> 5)</button>
+                    <button class="year-btn" onclick="filterYear('S6')">S6 (<span data-i18n="year_label">Year</span> 6)</button>
+                    <button class="year-btn" onclick="filterYear('S7')">S7 (<span data-i18n="year_label">Year</span> 7)</button>
                 </div>
 
                 <div class="year-select-wrapper mobile-view">
                     <select id="mobile-year-select" class="year-dropdown" onchange="filterYear(this.value)">
-                        <option value="ALL">All Years</option>
+                        <option value="ALL" data-i18n="sidebar_all">All Years</option>
                         <option value="S1">S1 (Year 1)</option>
                         <option value="S2">S2 (Year 2)</option>
                         <option value="S3">S3 (Year 3)</option>
@@ -58,14 +54,13 @@
 
             <main class="content-area">
                 <div class="section-header">
-                    <h2 class="section-title">Browse Subjects</h2>
+                    <h2 class="section-title" data-i18n="grid_title">Browse Subjects</h2>
                 </div>
                 <div class="course-grid" id="subject-grid">
-                    <p>Loading subjects...</p>
+                    <p data-i18n="grid_loading">Loading subjects...</p>
                 </div>
             </main>
         </div>
-
     </div>
 
     <script src="./layout.js"></script>
