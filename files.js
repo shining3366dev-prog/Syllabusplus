@@ -1,6 +1,6 @@
 /**
  * SYLLABUS+ FILE EXPLORER ENGINE
- * Fixed auto-select implementation with default first file loading
+ * Fixed for mobile: auto-select disabled, nav buttons aligned, back button fixed
  */
 
 // --- CONFIGURATION ---
@@ -13,6 +13,11 @@ const BASE_URL = IS_LOCAL ? '../Syllabusplus-Database' : 'https://shining3366dev
 
 window.BASE_URL = BASE_URL;
 window.quizzes = window.quizzes || {};
+
+// Detect if mobile
+function isMobile() {
+    return window.innerWidth <= 768;
+}
 
 // --- SOUND EFFECTS ---
 const QUIZ_SOUNDS = {
@@ -199,9 +204,9 @@ async function loadFiles(isSilent = false) {
     if (!isSilent && treeContainer) {
         treeContainer.innerHTML = '<p style="padding:20px; opacity:0.5;">Loading...</p>';
         
-        // Show empty state while loading
+        // Show empty state while loading (only on desktop or if no file param)
         const emptyState = document.getElementById('empty-state');
-        if (emptyState && !fileToAutoLoad) {
+        if (emptyState && !fileToAutoLoad && !isMobile()) {
             emptyState.style.display = 'flex';
         }
     }
@@ -280,9 +285,9 @@ async function loadFiles(isSilent = false) {
             titleElement.innerText = translateSubjectTitle(currentSubject);
         }
 
-        // 5. AUTO-SELECT FILE - IMPROVED APPROACH
-        if (!isSilent) {
-            console.log("✓ Auto-load enabled (not silent mode)");
+        // 5. AUTO-SELECT FILE - DISABLED ON MOBILE
+        if (!isSilent && !isMobile()) {
+            console.log("✓ Auto-load enabled (desktop mode)");
             // Use requestAnimationFrame to ensure DOM is fully rendered
             requestAnimationFrame(() => {
                 setTimeout(() => {
@@ -360,6 +365,29 @@ async function loadFiles(isSilent = false) {
                 }, 400); // Increased delay to ensure DOM is ready
             });
         } 
+        else if (!isSilent && isMobile()) {
+            console.log("📱 Mobile detected - auto-load disabled, showing file tree");
+            // On mobile, keep showing the file tree - don't auto-load
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.style.display = 'none';
+            
+            // If there's a file param, we could optionally load it
+            if (fileToAutoLoad) {
+                console.log("📱 File param detected, will load:", fileToAutoLoad);
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        const decoded = decodeURIComponent(fileToAutoLoad);
+                        const targetFile = window.currentFilesList.find(f => 
+                            f.link === decoded || f.link.endsWith(decoded) || f.link.includes(decoded)
+                        );
+                        if (targetFile) {
+                            const treeItem = document.querySelector(`.file-item[data-link="${targetFile.link}"]`);
+                            previewFile(targetFile.link, treeItem);
+                        }
+                    }, 400);
+                });
+            }
+        }
         else if (isSilent) {
             console.log("⊘ Auto-load skipped (silent mode - language switch)");
             // Language switch logic
@@ -376,9 +404,11 @@ async function loadFiles(isSilent = false) {
         console.error('File Load Error:', err);
         if (treeContainer) treeContainer.innerHTML = `<p style="color:red;">Error loading files.</p>`;
         
-        // Show empty state on error
-        const emptyState = document.getElementById('empty-state');
-        if (emptyState) emptyState.style.display = 'flex';
+        // Show empty state on error (only on desktop)
+        if (!isMobile()) {
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.style.display = 'flex';
+        }
     }
 }
 
@@ -447,7 +477,7 @@ window.previewFile = (url, element) => {
     }
 
     // Mobile view handling
-    if (window.innerWidth <= 768) {
+    if (isMobile()) {
         const wrapper = document.querySelector('.explorer-wrapper');
         if (wrapper) wrapper.classList.add('preview-mode');
     }
@@ -479,8 +509,14 @@ window.closePreview = () => {
 
 // --- NAVIGATION ---
 window.backToSubjects = () => {
-    const currentLang = getLangFromURL();
-    window.location.href = `index.html?lang=${currentLang}#subjects`;
+    // On mobile, close preview mode and show file tree
+    if (isMobile()) {
+        window.closePreview();
+    } else {
+        // On desktop, navigate to subjects page
+        const currentLang = getLangFromURL();
+        window.location.href = `index.html?lang=${currentLang}#subjects`;
+    }
 };
 
 window.goBackToSubjects = (event) => {
@@ -955,8 +991,27 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Subject:", getSubjectFromURL());
     console.log("Language:", getLangFromURL());
     console.log("File param:", getFileFromURL());
+    console.log("Mobile:", isMobile());
     console.log("Starting loadFiles()...");
     loadFiles();
+    
+    // Mobile language dropdown toggle
+    const langWrapper = document.querySelector('.lang-wrapper');
+    const langBtn = document.querySelector('.lang-btn');
+    
+    if (langWrapper && langBtn && isMobile()) {
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langWrapper.classList.toggle('active');
+        });
+        
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (!langWrapper.contains(e.target)) {
+                langWrapper.classList.remove('active');
+            }
+        });
+    }
 });
 
 // Handle browser back/forward buttons
@@ -972,7 +1027,14 @@ window.addEventListener('popstate', (event) => {
         Object.values(views).forEach(el => {
             if (el) el.classList.add('hidden');
         });
-        if (views.empty) views.empty.style.display = 'flex';
+        
+        // On mobile, just close preview mode
+        if (isMobile()) {
+            window.closePreview();
+        } else {
+            if (views.empty) views.empty.style.display = 'flex';
+        }
+        
         document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     }
 });
