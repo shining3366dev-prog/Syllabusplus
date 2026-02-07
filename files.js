@@ -994,24 +994,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Mobile:", isMobile());
     console.log("Starting loadFiles()...");
     loadFiles();
-    
-    // Mobile language dropdown toggle
-    const langWrapper = document.querySelector('.lang-wrapper');
-    const langBtn = document.querySelector('.lang-btn');
-    
-    if (langWrapper && langBtn && isMobile()) {
-        langBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            langWrapper.classList.toggle('active');
-        });
-        
-        // Close on outside click
-        document.addEventListener('click', (e) => {
-            if (!langWrapper.contains(e.target)) {
-                langWrapper.classList.remove('active');
-            }
-        });
-    }
 });
 
 // Handle browser back/forward buttons
