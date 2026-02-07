@@ -522,23 +522,31 @@ function renderSection(s, index, lang) {
             break;
         case 'quiz':
             const qId = `quiz-sec-${index}`; 
+            const quizTitle = getField('title') || getUIString('ui_quiz_title', lang);
+            const quizDesc = getField('description') || '';
+            
             window.quizzes[qId] = { 
                 questions: s.questions.map(q => ({
                     question: q[`question_${lang}`] || q.question,
                     options: q[`options_${lang}`] || q.options,
                     correct: q.correct
                 })),
-                currentQ: 0, score: 0, total: s.questions.length 
+                currentQ: 0, 
+                score: 0, 
+                total: s.questions.length,
+                started: false,
+                title: quizTitle,
+                description: quizDesc
             };
             html += `
                 <div id="${qId}" class="quiz-window">
-                    <div class="quiz-header">
+                    <div class="quiz-header hidden">
                         <div class="quiz-progress-text"></div>
                         <div class="quiz-progress-track"><div class="quiz-progress-fill"></div></div>
                     </div>
                     <div class="quiz-body" id="${qId}-body"></div>
                     <div class="quiz-footer">
-                        <button class="btn-next" onclick="nextQuestion('${qId}')"></button>
+                        <button class="btn-next hidden" onclick="nextQuestion('${qId}')"></button>
                     </div>
                 </div>`;
             break;
@@ -552,12 +560,45 @@ window.renderQuizQuestion = function(quizId) {
     if (!data) return;
     
     const lang = getLangFromURL();
+    const body = document.getElementById(`${quizId}-body`);
+    const container = document.getElementById(quizId);
+    const header = container.querySelector('.quiz-header');
+    const footer = container.querySelector('.quiz-footer');
+    
+    // Show start screen if quiz hasn't started
+    if (!data.started) {
+        header.classList.add('hidden');
+        footer.classList.add('hidden');
+        
+        body.innerHTML = `
+            <div class="quiz-start-screen">
+                <div class="quiz-start-icon">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <h2 class="quiz-start-title">${parseInlineMath(data.title)}</h2>
+                ${data.description ? `<p class="quiz-start-desc">${parseInlineMath(data.description)}</p>` : ''}
+                <div class="quiz-start-stats">
+                    <div class="quiz-stat-item">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>${data.total} ${getUIString('ui_questions', lang)}</span>
+                    </div>
+                </div>
+                <button class="btn-start-quiz" onclick="startQuiz('${quizId}')">
+                    ${getUIString('ui_start_quiz', lang)} <i class="fa-solid fa-play"></i>
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Show quiz header and footer once started
+    header.classList.remove('hidden');
+    footer.classList.remove('hidden');
     
     const q = data.questions[data.currentQ];
-    const body = document.getElementById(`${quizId}-body`);
-    const nextBtn = document.querySelector(`#${quizId} .btn-next`);
-    const progressText = document.querySelector(`#${quizId} .quiz-progress-text`);
-    const progressFill = document.querySelector(`#${quizId} .quiz-progress-fill`);
+    const nextBtn = container.querySelector('.btn-next');
+    const progressText = container.querySelector('.quiz-progress-text');
+    const progressFill = container.querySelector('.quiz-progress-fill');
 
     const qLabel = getUIString('ui_question', lang);
     if (progressText) progressText.innerText = `${qLabel} ${data.currentQ + 1} / ${data.total}`;
@@ -582,6 +623,14 @@ window.renderQuizQuestion = function(quizId) {
                 `).join('')}
             </div>`;
     }
+};
+
+window.startQuiz = function(quizId) {
+    const data = window.quizzes[quizId];
+    if (!data) return;
+    
+    data.started = true;
+    renderQuizQuestion(quizId);
 };
 
 window.handleAnswer = function(quizId, btn, isCorrect) {
@@ -642,10 +691,11 @@ window.resetQuiz = function(quizId) {
 
     data.currentQ = 0;
     data.score = 0;
+    data.started = false;
 
     const container = document.getElementById(quizId);
     container.innerHTML = `
-        <div class="quiz-header">
+        <div class="quiz-header hidden">
             <div class="quiz-progress-text"></div>
             <div class="quiz-progress-track">
                 <div class="quiz-progress-fill" style="width: 0%"></div>
