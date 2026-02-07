@@ -105,6 +105,12 @@ window.changeLanguage = function(langCode, event) {
     const langBtnSpan = document.querySelector('.lang-btn span');
     if (langBtnSpan) langBtnSpan.textContent = langNames[langCode];
 
+    // Close the dropdown on mobile after selection
+    const langWrapper = document.querySelector('.lang-wrapper');
+    if (langWrapper) {
+        langWrapper.classList.remove('active');
+    }
+
     // Translate static page elements
     translatePage();
 
@@ -157,6 +163,31 @@ function loadLayout() {
                 icon.classList.remove('fa-xmark');
                 icon.classList.add('fa-bars');
             }
+        });
+    }
+
+    // Mobile language dropdown toggle
+    const langWrapper = document.querySelector('.lang-wrapper');
+    const langBtn = document.querySelector('.lang-btn');
+    
+    if (langWrapper && langBtn && window.innerWidth <= 768) {
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langWrapper.classList.toggle('active');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!langWrapper.contains(e.target)) {
+                langWrapper.classList.remove('active');
+            }
+        });
+        
+        // Close dropdown when selecting a language
+        document.querySelectorAll('.lang-option').forEach(option => {
+            option.addEventListener('click', () => {
+                langWrapper.classList.remove('active');
+            });
         });
     }
 
