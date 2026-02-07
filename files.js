@@ -352,6 +352,10 @@ async function loadFiles(isSilent = false) {
                         console.error("❌ NO FILES AVAILABLE - Cannot auto-load");
                         console.error("currentFilesList:", window.currentFilesList);
                         console.error("totalFiles:", totalFiles);
+                        
+                        // Show empty state
+                        const emptyState = document.getElementById('empty-state');
+                        if (emptyState) emptyState.style.display = 'flex';
                     }
                 }, 400); // Increased delay to ensure DOM is ready
             });
@@ -371,6 +375,10 @@ async function loadFiles(isSilent = false) {
     } catch (err) {
         console.error('File Load Error:', err);
         if (treeContainer) treeContainer.innerHTML = `<p style="color:red;">Error loading files.</p>`;
+        
+        // Show empty state on error
+        const emptyState = document.getElementById('empty-state');
+        if (emptyState) emptyState.style.display = 'flex';
     }
 }
 
@@ -492,7 +500,16 @@ async function renderWiki(url, originalFilename) {
     const isSameFile = (storedFile === originalFilename && storedLang === currentLang);
 
     if (!isSameFile) {
-        container.innerHTML = '<div class="loading-spinner">Loading...</div>';
+        // Show loading state with spinner
+        container.innerHTML = `
+            <div class="article-loading-state">
+                <div class="loading-spinner-wrapper">
+                    <div class="loading-spinner-circle"></div>
+                </div>
+                <h3 class="loading-text">Loading article...</h3>
+                <p class="loading-subtext">Preparing your content</p>
+            </div>
+        `;
         
         if (!isLanguageSwitch) {
             window.scrollTo(0, 0);
