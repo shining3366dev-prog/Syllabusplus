@@ -66,6 +66,7 @@
 html {
     overflow-anchor: none;
     scroll-behavior: smooth;
+    background-color: var(--bg-body); /* Fixes white line/overscroll in dark mode */
 }
 
 body {
@@ -463,8 +464,8 @@ body {
 .explorer-wrapper {
     display: flex;
     min-height: 80vh;
-    background-color: var(--bg-white);
-    border-top: 1px solid #ddd;
+    background-color: var(--bg-white); /* changed from #fff */
+    border-top: 1px solid var(--border-light); /* FIXED: changed from #ddd */
     overflow: visible;
 }
 
@@ -2059,7 +2060,7 @@ body {
         background: linear-gradient(to right, #ff6b6b, #f8b195); /* warm secondary gradient: red → peach */
         padding: 15px 25px;
         border-radius: 8px;
-        color: white;
+        color: white; 
         justify-content: flex-start;
         align-items: center;
         gap: 15px;
@@ -2234,4 +2235,28 @@ html.dark-theme {
     --shadow-md: 0 4px 12px rgba(139, 158, 255, 0.25) !important;
     --shadow-lg: 0 6px 20px rgba(139, 158, 255, 0.3) !important;
     --shadow-xl: 0 10px 30px rgba(139, 158, 255, 0.15) !important;
+}
+/* =========================================
+   MOBILE SCROLLBAR HIDE (for iframes & preview areas)
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* Hide scrollbars visually but keep scroll functional */
+    .pdf-viewer,
+    .scratch-frame-wrapper iframe,
+    .article-viewer {
+        -ms-overflow-style: none;  /* IE & Edge */
+        scrollbar-width: none;     /* Firefox */
+        overflow: auto !important;
+    }
+
+    .pdf-viewer::-webkit-scrollbar,
+    .scratch-frame-wrapper iframe::-webkit-scrollbar,
+    .article-viewer::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+
+    /* Optional: prevent overscroll glow on mobile */
+    html, body {
+        overscroll-behavior: none;
+    }
 }
