@@ -1949,7 +1949,7 @@ body {
 
     .nav-btn {
         max-width: 100% !important;
-        padding: 12px 20px;
+        padding: 15px 20px;  /* ✅ 15px vertical */
     }
     
     .nav-btn.prev {
@@ -2056,8 +2056,7 @@ body {
     .bottom-explorer-btn {
         display: flex;
         width: 100%;
-        background: #2c3e50;
-        border: 1px solid #1a252f;
+        background: linear-gradient(to right, #ff6b6b, #f8b195); /* warm secondary gradient: red → peach */
         padding: 15px 20px;
         border-radius: 8px;
         color: white;
@@ -2066,6 +2065,8 @@ body {
         gap: 15px;
         margin-top: 10px;
         text-align: left;
+        box-shadow: 0 2px 6px rgba(248, 177, 149, 0.25); /* match gradient tone */
+        transition: all 0.3s ease;
     }
     
     .bottom-explorer-btn .nav-info {
