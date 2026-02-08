@@ -1,6 +1,6 @@
 /**
  * SYLLABUS+ FILE EXPLORER ENGINE
- * Fixed for mobile: auto-select disabled, nav buttons aligned, back button fixed
+ * Fixed: Year switching scrolls to top, clears file URL param, handles empty file lists
  */
 
 // --- CONFIGURATION ---
@@ -199,7 +199,11 @@ async function loadFiles(isSilent = false) {
         savedYear = availableYears.length > 1 ? "ALL" : availableYears[0];
         localStorage.setItem('selectedYear', savedYear);
     }
-    if (dropdown) dropdown.value = savedYear;
+    if (dropdown) {
+        dropdown.value = savedYear;
+        // Prevent auto-scroll when dropdown value is set programmatically
+        dropdown.blur();
+    }
 
     if (!isSilent && treeContainer) {
         treeContainer.innerHTML = '<p style="padding:20px; opacity:0.5;">Loading...</p>';
@@ -286,37 +290,34 @@ async function loadFiles(isSilent = false) {
         }
 
         // 5. AUTO-SELECT FILE - DISABLED ON MOBILE
-        if (!isSilent && !isMobile()) {
+        // ⚠️ FIX: Only auto-load if there are files available
+        if (!isSilent && !isMobile() && window.currentFilesList.length > 0) {
             console.log("✓ Auto-load enabled (desktop mode)");
-            // Use requestAnimationFrame to ensure DOM is fully rendered
+            console.log("📊 Total files available:", window.currentFilesList.length);
+            
             requestAnimationFrame(() => {
                 setTimeout(() => {
                     let targetFile = null;
                     
                     console.log("🔍 Starting auto-load process...");
-                    console.log("📊 Total files available:", window.currentFilesList.length);
                     
-                    // Option A: Try to load file from URL parameter
+                    // Option A: Try to load file from URL parameter (only if it exists in current list)
                     if (fileToAutoLoad) {
-                        console.log("🤖 Auto-loading file from URL:", fileToAutoLoad);
+                        console.log("🤖 Checking file from URL:", fileToAutoLoad);
                         const decoded = decodeURIComponent(fileToAutoLoad);
-                        console.log("Searching for:", decoded);
                         
-                        // Try multiple matching strategies
                         targetFile = window.currentFilesList.find(f => 
-                            f.link === decoded ||                    // Exact match
-                            f.link.endsWith(decoded) ||              // Ends with (e.g., "powers-scientific.json")
-                            f.link.includes(decoded) ||              // Contains
-                            f.link === `${decoded}` ||               // With potential path
-                            f.name === decoded ||                     // Match by name
-                            f.name.includes(decoded)                  // Name contains
+                            f.link === decoded ||
+                            f.link.endsWith(decoded) ||
+                            f.link.includes(decoded) ||
+                            f.name === decoded ||
+                            f.name.includes(decoded)
                         );
                         
                         if (targetFile) {
                             console.log("✅ Found file from URL:", targetFile.link);
                         } else {
-                            console.warn("❌ File not found in URL:", decoded);
-                            console.log("Available files:", window.currentFilesList.map(f => ({ name: f.name, link: f.link })));
+                            console.warn("❌ File from URL not in current year/filter:", decoded);
                         }
                     }
                     
@@ -324,7 +325,6 @@ async function loadFiles(isSilent = false) {
                     if (!targetFile && window.currentFilesList.length > 0) {
                         targetFile = window.currentFilesList[0];
                         console.log("📄 Loading first file by default:", targetFile.link);
-                        console.log("📄 First file name:", targetFile.name);
                     }
                     
                     // Load the target file
@@ -346,33 +346,37 @@ async function loadFiles(isSilent = false) {
                             
                             // Scroll to it
                             treeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        } else {
-                            console.warn("⚠️ DOM element not found yet, but proceeding with previewFile");
                         }
                         
                         // Call previewFile to display the content
                         console.log("🚀 Calling previewFile()");
                         previewFile(targetFile.link, treeItem);
-                    } else {
-                        console.error("❌ NO FILES AVAILABLE - Cannot auto-load");
-                        console.error("currentFilesList:", window.currentFilesList);
-                        console.error("totalFiles:", totalFiles);
-                        
-                        // Show empty state
-                        const emptyState = document.getElementById('empty-state');
-                        if (emptyState) emptyState.style.display = 'flex';
                     }
-                }, 400); // Increased delay to ensure DOM is ready
+                }, 400);
             });
         } 
+        else if (!isSilent && !isMobile() && window.currentFilesList.length === 0) {
+            // ⚠️ FIX: Show empty state when no files available
+            console.log("⚠️ No files available for this year/filter");
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) {
+                emptyState.style.display = 'flex';
+            }
+            
+            // Hide PDF and article viewers
+            const pdfViewer = document.getElementById('pdf-viewer');
+            const articleViewer = document.getElementById('article-viewer');
+            if (pdfViewer) pdfViewer.classList.add('hidden');
+            if (articleViewer) articleViewer.classList.add('hidden');
+        }
         else if (!isSilent && isMobile()) {
             console.log("📱 Mobile detected - auto-load disabled, showing file tree");
             // On mobile, keep showing the file tree - don't auto-load
             const emptyState = document.getElementById('empty-state');
             if (emptyState) emptyState.style.display = 'none';
             
-            // If there's a file param, we could optionally load it
-            if (fileToAutoLoad) {
+            // If there's a file param AND files are available, load it
+            if (fileToAutoLoad && window.currentFilesList.length > 0) {
                 console.log("📱 File param detected, will load:", fileToAutoLoad);
                 requestAnimationFrame(() => {
                     setTimeout(() => {
@@ -436,8 +440,37 @@ async function setupYearDropdown(subjectName) {
     }
 }
 
+// ⚠️ FIX: Scroll to top when switching years so empty state is visible
 window.updateFileYear = (year) => {
     localStorage.setItem('selectedYear', year);
+    
+    // Clear the file parameter from URL when switching years to prevent loading wrong file
+    const currentSubject = getSubjectFromURL();
+    const currentLang = getLangFromURL();
+    const newUrl = `files.html?subject=${encodeURIComponent(currentSubject)}&lang=${currentLang}`;
+    window.history.pushState({}, '', newUrl);
+    
+    // Hide current preview and show empty state
+    const views = {
+        pdf: document.getElementById('pdf-viewer'),
+        wiki: document.getElementById('article-viewer'),
+        empty: document.getElementById('empty-state')
+    };
+    
+    if (views.pdf) views.pdf.classList.add('hidden');
+    if (views.wiki) views.wiki.classList.add('hidden');
+    if (views.empty && !isMobile()) views.empty.style.display = 'flex';
+    
+    // Clear active file selection
+    document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+    
+    // Scroll to top immediately so the empty state is visible
+    window.scrollTo(0, 0);
+    const sidebarElement = document.querySelector('.file-tree-content');
+    if (sidebarElement) {
+        sidebarElement.scrollTop = 0;
+    }
+    
     loadFiles();
 };
 

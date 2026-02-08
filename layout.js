@@ -90,7 +90,63 @@ const headerHTML = `
 // --- FOOTER ---
 const footerHTML = `
     <footer id="main-footer">
-        <p>&copy; 2026 SYLLABUSPLUS. <span data-i18n="footer_rights">All rights reserved.</span></p>
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="footer-logo">Syllabus+</div>
+                <p class="footer-tagline" data-i18n="footer_tagline">Empowering students with quality resources</p>
+            </div>
+            
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4 data-i18n="footer_explore">Explore</h4>
+                    <a href="#" onclick="goToHome(event)" data-i18n="nav_home">Home</a>
+                    <a href="#" onclick="goToSubjects(event)" data-i18n="nav_subjects">Subjects</a>
+                    <a href="#about" data-i18n="nav_about">About</a>
+                </div>
+                
+                <div class="footer-column">
+                    <h4 data-i18n="footer_resources">Resources</h4>
+                    <a href="#" data-i18n="footer_study_guides">Study Guides</a>
+                    <a href="#" data-i18n="footer_past_papers">Past Papers</a>
+                    <a href="#" data-i18n="footer_worksheets">Worksheets</a>
+                </div>
+                
+                <div class="footer-column">
+                    <h4 data-i18n="footer_support">Support</h4>
+                    <a href="#" data-i18n="footer_help">Help Center</a>
+                    <a href="#" data-i18n="footer_contact">Contact Us</a>
+                    <a href="#" data-i18n="footer_feedback">Feedback</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="footer-left">
+                <p>&copy; 2026 SYLLABUSPLUS. <span data-i18n="footer_rights">All rights reserved.</span></p>
+            </div>
+            
+            <div class="footer-center">
+                <div class="theme-switcher">
+                    <button class="theme-btn" data-theme="system" title="System theme">
+                        <i class="fa-solid fa-circle-half-stroke"></i>
+                    </button>
+                    <button class="theme-btn" data-theme="light" title="Light theme">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                    <button class="theme-btn" data-theme="dark" title="Dark theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <div class="theme-indicator"></div>
+                </div>
+            </div>
+            
+            <div class="footer-right">
+                <div class="footer-social">
+                    <a href="https://discord.gg/hQGbsEfH" target="_blank" aria-label="Discord"><i class="fa-brands fa-discord"></i></a>
+                    <a href="https://github.com/shining3366dev-prog" target="_blank" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+        </div>
     </footer>
 `;
 
@@ -189,14 +245,12 @@ function loadLayout() {
             langWrapper.classList.toggle('active');
         });
         
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!langWrapper.contains(e.target)) {
                 langWrapper.classList.remove('active');
             }
         });
         
-        // Close dropdown when selecting a language
         document.querySelectorAll('.lang-option').forEach(option => {
             option.addEventListener('click', () => {
                 langWrapper.classList.remove('active');
@@ -206,7 +260,91 @@ function loadLayout() {
 
     // Initialize localization
     initLocalisation();
+    
+    // Initialize theme switcher
+    ThemeSwitcher.init();
 }
+// --- THEME SWITCHER ---
+const ThemeSwitcher = {
+    init() {
+        // Get saved theme or default to 'system'
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        this.applyTheme(savedTheme);
+        
+        // Wait for DOM to load
+        setTimeout(() => {
+            this.setupListeners();
+            this.updateActiveButton(savedTheme);
+        }, 100);
+    },
 
+    setupListeners() {
+        const buttons = document.querySelectorAll('.theme-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                this.setTheme(theme);
+            });
+        });
+
+        // Listen for system theme changes
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                const currentTheme = localStorage.getItem('theme');
+                if (currentTheme === 'system' || !currentTheme) {
+                    this.applyTheme('system');
+                }
+            });
+        }
+    },
+
+    setTheme(theme) {
+        localStorage.setItem('theme', theme);
+        this.applyTheme(theme);
+        this.updateActiveButton(theme);
+    },
+
+    applyTheme(theme) {
+        // Remove existing theme classes
+        document.documentElement.classList.remove('light-theme', 'dark-theme');
+        
+        // Add transition class for smooth switching
+        document.documentElement.classList.add('theme-transitioning');
+
+        if (theme === 'light') {
+            document.documentElement.classList.add('light-theme');
+        } else if (theme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+        } else {
+            // System theme - let CSS media query handle it
+            // No class needed, will use @media (prefers-color-scheme)
+        }
+
+        // Remove transition class after animation completes
+        setTimeout(() => {
+            document.documentElement.classList.remove('theme-transitioning');
+        }, 300);
+    },
+
+    updateActiveButton(theme) {
+        const buttons = document.querySelectorAll('.theme-btn');
+        const indicator = document.querySelector('.theme-indicator');
+        
+        buttons.forEach((btn, index) => {
+            btn.classList.remove('active');
+            if (btn.dataset.theme === theme) {
+                btn.classList.add('active');
+                if (indicator) {
+                    indicator.style.transform = `translateX(${index * 100}%)`;
+                }
+            }
+        });
+    }
+};
+
+// Initialize theme on page load
+window.addEventListener('DOMContentLoaded', () => {
+    ThemeSwitcher.init();
+});
 // --- RUN ON PAGE LOAD ---
 loadLayout();
