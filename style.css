@@ -2118,7 +2118,7 @@ body {
         width: 100%;
         background: linear-gradient(to right, #ff6b6b, #f8b195);
         padding: 15px 25px;
-        border-radius: 8px;
+        border-radius: 10px;
         color: white; 
         justify-content: flex-start;
         align-items: center;
