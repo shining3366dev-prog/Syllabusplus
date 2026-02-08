@@ -66,7 +66,7 @@
 html {
     overflow-anchor: none;
     scroll-behavior: smooth;
-    background-color: var(--bg-body); /* Fixes white line/overscroll in dark mode */
+    background-color: var(--bg-body);
 }
 
 body {
@@ -123,16 +123,16 @@ body {
 }
 
 .navbar a:hover { 
-    color: var(--primary); 
+    color: var(--primary) !important;
 }
 
 .navbar a.active { 
-    color: var(--primary); 
+    color: var(--primary) !important;
     font-weight: 700; 
 }
 
-.btn-login {
-    background: var(--gradient-primary);
+.navbar a.btn-login {
+    background: var(--gradient-primary) !important;
     color: white !important;
     padding: var(--spacing-xs) var(--spacing-md);
     border-radius: var(--radius-pill);
@@ -140,9 +140,10 @@ body {
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.btn-login:hover { 
-    box-shadow: var(--shadow-md);
+.navbar a.btn-login:hover { 
+    box-shadow: var(--shadow-md) !important;
     transform: translateY(-2px);
+    color: white !important;
 }
 
 .menu-toggle {
@@ -331,19 +332,20 @@ body {
     text-align: left;
     font-size: 0.85rem;
     font-weight: 500;
-    color: var(--text-light) !important;
+    color: var(--text-dark);
     cursor: pointer;
     transition: var(--transition-fast);
 }
 
 .year-btn:hover {
-    background-color: #e2e6ea;
+    background-color: #e8ecf1;
     border-color: var(--primary);
+    color: var(--primary);
 }
 
 .year-btn.active {
     background: var(--gradient-primary);
-    color: white;
+    color: white !important;
     border-color: var(--primary);
     font-weight: 600;
 }
@@ -464,8 +466,8 @@ body {
 .explorer-wrapper {
     display: flex;
     min-height: 80vh;
-    background-color: var(--bg-white); /* changed from #fff */
-    border-top: 1px solid var(--border-light); /* FIXED: changed from #ddd */
+    background-color: var(--bg-white);
+    border-top: 1px solid var(--border-light);
     overflow: visible;
 }
 
@@ -1731,10 +1733,13 @@ body {
         display: inline-block;
         border-radius: 25px;
         box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+        background: var(--gradient-primary) !important;
+        color: white !important;
     }
 
     .navbar .btn-login:hover {
         transform: none;
+        color: white !important;
     }
 
     .lang-wrapper {
@@ -1950,7 +1955,7 @@ body {
 
     .nav-btn {
         max-width: 100% !important;
-        padding: 15px 20px;  /* ✅ 15px vertical */
+        padding: 15px 20px;
     }
     
     .nav-btn.prev {
@@ -2057,7 +2062,7 @@ body {
     .bottom-explorer-btn {
         display: flex;
         width: 100%;
-        background: linear-gradient(to right, #ff6b6b, #f8b195); /* warm secondary gradient: red → peach */
+        background: linear-gradient(to right, #ff6b6b, #f8b195);
         padding: 15px 25px;
         border-radius: 8px;
         color: white; 
@@ -2065,7 +2070,7 @@ body {
         align-items: center;
         gap: 15px;
         text-align: left;
-        box-shadow: 0 2px 6px rgba(248, 177, 149, 0.25); /* match gradient tone */
+        box-shadow: 0 2px 6px rgba(248, 177, 149, 0.25);
         transition: all 0.3s ease;
     }
     
@@ -2158,36 +2163,11 @@ body {
 }
 
 /* =========================================
-   THEME OVERRIDES - CLEAN & SIMPLE
+   THEME OVERRIDES - LIGHT THEME DEFAULT
    ========================================= */
 
-/* System Dark Mode (Default when no class) */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --primary: #8b9eff;
-        --secondary: #b088db;
-        --text-dark: #f0f2f5;
-        --text-light: #c8ccd4;
-        --text-muted: #a0a6b8;
-        --bg-body: #0a0a0a;
-        --bg-white: #1a1a1a;
-        --bg-light: #242424;
-        --bg-lighter: #2e2e2e;
-        --border-light: #404040;
-        --border-lighter: #353535;
-        --gradient-primary: linear-gradient(135deg, #8b9eff 0%, #b088db 100%);
-        --gradient-light: linear-gradient(135deg, #242424 0%, #2e2e2e 100%);
-        --gradient-purple-light: linear-gradient(135deg, #1e2a3a 0%, #2a1e2f 100%);
-        --gradient-example: linear-gradient(135deg, #1a2332 0%, #2a1e2f 100%);
-        --gradient-hover: linear-gradient(135deg, #252f3f 0%, #2f253a 100%);
-        --shadow-sm: 0 2px 8px rgba(0,0,0,0.5);
-        --shadow-md: 0 4px 12px rgba(139, 158, 255, 0.25);
-        --shadow-lg: 0 6px 20px rgba(139, 158, 255, 0.3);
-        --shadow-xl: 0 10px 30px rgba(139, 158, 255, 0.15);
-    }
-}
-
-/* Force Light Theme (Overrides everything) */
+/* Force Light Theme (Default - No Class Needed) */
+html,
 html.light-theme {
     color-scheme: light;
     --primary: #667eea !important;
@@ -2212,7 +2192,7 @@ html.light-theme {
     --shadow-xl: 0 10px 30px rgba(102, 126, 234, 0.12) !important;
 }
 
-/* Force Dark Theme (Overrides everything) */
+/* Force Dark Theme (Only When Class Is Applied) */
 html.dark-theme {
     color-scheme: dark;
     --primary: #8b9eff !important;
@@ -2235,4 +2215,30 @@ html.dark-theme {
     --shadow-md: 0 4px 12px rgba(139, 158, 255, 0.25) !important;
     --shadow-lg: 0 6px 20px rgba(139, 158, 255, 0.3) !important;
     --shadow-xl: 0 10px 30px rgba(139, 158, 255, 0.15) !important;
+}
+
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary: #8b9eff;
+        --secondary: #b088db;
+        --text-dark: #f0f2f5;
+        --text-light: #c8ccd4;
+        --text-muted: #a0a6b8;
+        --bg-body: #0a0a0a;
+        --bg-white: #1a1a1a;
+        --bg-light: #242424;
+        --bg-lighter: #2e2e2e;
+        --border-light: #404040;
+        --border-lighter: #353535;
+        --gradient-primary: linear-gradient(135deg, #8b9eff 0%, #b088db 100%);
+        --gradient-light: linear-gradient(135deg, #242424 0%, #2e2e2e 100%);
+        --gradient-purple-light: linear-gradient(135deg, #1e2a3a 0%, #2a1e2f 100%);
+        --gradient-example: linear-gradient(135deg, #1a2332 0%, #2a1e2f 100%);
+        --gradient-hover: linear-gradient(135deg, #252f3f 0%, #2f253a 100%);
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.5);
+        --shadow-md: 0 4px 12px rgba(139, 158, 255, 0.25);
+        --shadow-lg: 0 6px 20px rgba(139, 158, 255, 0.3);
+        --shadow-xl: 0 10px 30px rgba(139, 158, 255, 0.15);
+    }
 }
