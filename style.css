@@ -6,6 +6,27 @@
 /* =========================================
    0. CSS VARIABLES (Design Tokens)
    ========================================= */
+
+/* Universal variables (not theme-specific) */
+:root {
+    /* Transitions */
+    --transition-fast: all 0.2s ease;
+    --transition-base: all 0.3s ease;
+    
+    /* Border Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-pill: 25px;
+    
+    /* Spacing */
+    --spacing-xs: 8px;
+    --spacing-sm: 12px;
+    --spacing-md: 20px;
+    --spacing-lg: 30px;
+}
+
+/* Default Light Theme (when system prefers light or no preference) */
 :root {
     /* Primary Colors */
     --primary: #667eea;
@@ -36,22 +57,44 @@
     --shadow-md: 0 4px 12px rgba(102, 126, 234, 0.3);
     --shadow-lg: 0 6px 20px rgba(102, 126, 234, 0.4);
     --shadow-xl: 0 10px 30px rgba(102, 126, 234, 0.12);
-    
-    /* Transitions */
-    --transition-fast: all 0.2s ease;
-    --transition-base: all 0.3s ease;
-    
-    /* Border Radius */
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 12px;
-    --radius-pill: 25px;
-    
-    /* Spacing */
-    --spacing-xs: 8px;
-    --spacing-sm: 12px;
-    --spacing-md: 20px;
-    --spacing-lg: 30px;
+}
+
+/* System Dark Mode Override (when system prefers dark AND no theme class) */
+@media (prefers-color-scheme: dark) {
+    :root:not(.light-theme):not(.dark-theme),
+    html:not(.light-theme):not(.dark-theme) {
+        /* Primary Colors */
+        --primary: #8b9eff;
+        --secondary: #b088db;
+        --text-dark: #f0f2f5;
+        --text-light: #c8ccd4;
+        --text-muted: #a0a6b8;
+        
+        /* Background Colors */
+        --bg-body: #0a0a0a;
+        --bg-white: #1a1a1a;
+        --bg-light: #242424;
+        --bg-lighter: #2e2e2e;
+        
+        /* Borders */
+        --border-light: #404040;
+        --border-lighter: #353535;
+        
+        /* Gradients */
+        --gradient-primary: linear-gradient(135deg, #8b9eff 0%, #b088db 100%);
+        --gradient-light: linear-gradient(135deg, #242424 0%, #2e2e2e 100%);
+        --gradient-purple-light: linear-gradient(135deg, #1e2a3a 0%, #2a1e2f 100%);
+        --gradient-example: linear-gradient(135deg, #1a2332 0%, #2a1e2f 100%);
+        --gradient-hover: linear-gradient(135deg, #252f3f 0%, #2f253a 100%);
+        
+        /* Shadows */
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.5);
+        --shadow-md: 0 4px 12px rgba(139, 158, 255, 0.25);
+        --shadow-lg: 0 6px 20px rgba(139, 158, 255, 0.3);
+        --shadow-xl: 0 10px 30px rgba(139, 158, 255, 0.15);
+        
+        color-scheme: dark;
+    }
 }
 
 /* =========================================
@@ -185,12 +228,13 @@ body {
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     border: 1px solid var(--border-lighter);
-    padding: 5px 0;
+    padding: 0;
     z-index: 1001;
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
     transition: all 0.2s ease;
+    overflow: hidden;
 }
 
 .lang-dropdown::before {
@@ -224,19 +268,29 @@ body {
     display: block;
     padding: 10px 18px !important;
     font-size: 0.85rem !important;
-    color: #555 !important;
+    color: var(--text-dark) !important;
     text-decoration: none;
     transition: var(--transition-fast);
     border-bottom: none !important;
 }
 
+.lang-option:first-child {
+    border-radius: 12px 12px 0 0;
+    padding-top: 12px !important;
+}
+
+.lang-option:last-child {
+    border-radius: 0 0 12px 12px;
+    padding-bottom: 12px !important;
+}
+
 .lang-option:hover {
-    background-color: #f0f7ff;
+    background-color: var(--bg-lighter);
     color: var(--primary) !important;
 }
 
 .lang-option.active {
-    background-color: #f0f7ff;
+    background-color: var(--bg-lighter);
     color: var(--primary) !important;
     font-weight: 600;
 }
@@ -2163,13 +2217,12 @@ body {
 }
 
 /* =========================================
-   THEME OVERRIDES - LIGHT THEME DEFAULT
+   THEME OVERRIDES - MANUAL THEME SELECTION
    ========================================= */
 
-/* Force Light Theme (Default - No Class Needed) */
-html,
+/* Force Light Theme (When .light-theme class is applied) */
 html.light-theme {
-    color-scheme: light;
+    color-scheme: light !important;
     --primary: #667eea !important;
     --secondary: #764ba2 !important;
     --text-dark: #2c3e50 !important;
@@ -2192,9 +2245,9 @@ html.light-theme {
     --shadow-xl: 0 10px 30px rgba(102, 126, 234, 0.12) !important;
 }
 
-/* Force Dark Theme (Only When Class Is Applied) */
+/* Force Dark Theme (When .dark-theme class is applied) */
 html.dark-theme {
-    color-scheme: dark;
+    color-scheme: dark !important;
     --primary: #8b9eff !important;
     --secondary: #b088db !important;
     --text-dark: #f0f2f5 !important;
@@ -2215,30 +2268,4 @@ html.dark-theme {
     --shadow-md: 0 4px 12px rgba(139, 158, 255, 0.25) !important;
     --shadow-lg: 0 6px 20px rgba(139, 158, 255, 0.3) !important;
     --shadow-xl: 0 10px 30px rgba(139, 158, 255, 0.15) !important;
-}
-
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --primary: #8b9eff;
-        --secondary: #b088db;
-        --text-dark: #f0f2f5;
-        --text-light: #c8ccd4;
-        --text-muted: #a0a6b8;
-        --bg-body: #0a0a0a;
-        --bg-white: #1a1a1a;
-        --bg-light: #242424;
-        --bg-lighter: #2e2e2e;
-        --border-light: #404040;
-        --border-lighter: #353535;
-        --gradient-primary: linear-gradient(135deg, #8b9eff 0%, #b088db 100%);
-        --gradient-light: linear-gradient(135deg, #242424 0%, #2e2e2e 100%);
-        --gradient-purple-light: linear-gradient(135deg, #1e2a3a 0%, #2a1e2f 100%);
-        --gradient-example: linear-gradient(135deg, #1a2332 0%, #2a1e2f 100%);
-        --gradient-hover: linear-gradient(135deg, #252f3f 0%, #2f253a 100%);
-        --shadow-sm: 0 2px 8px rgba(0,0,0,0.5);
-        --shadow-md: 0 4px 12px rgba(139, 158, 255, 0.25);
-        --shadow-lg: 0 6px 20px rgba(139, 158, 255, 0.3);
-        --shadow-xl: 0 10px 30px rgba(139, 158, 255, 0.15);
-    }
 }
