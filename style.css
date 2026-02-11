@@ -1146,7 +1146,7 @@ body {
 }
 
 .quiz-progress-fill {
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     height: 100%;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1227,7 +1227,7 @@ body {
 }
 
 .btn-next {
-    background: #34495e;
+    background: var(--gradient-primary);
     color: white;
     border: none;
     padding: 8px 18px;
@@ -1236,10 +1236,12 @@ body {
     font-weight: 600;
     font-size: 0.9rem;
     transition: var(--transition-fast);
+    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.3);
 }
 
 .btn-next:hover {
-    background: #2c3e50;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
 }
 
 .btn-next.btn-skip {
@@ -2124,7 +2126,7 @@ body {
         align-items: center;
         gap: 15px;
         text-align: left;
-        box-shadow: 0 2px 6px rgba(248, 177, 149, 0.25);
+        box-shadow: 0 2px 6px rgba(248, 177, 149, 0.3);
         transition: all 0.3s ease;
     }
     
