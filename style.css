@@ -1027,6 +1027,8 @@ body {
 
 /* Quiz Start Screen */
 .quiz-start-screen {
+    justify-content: center;
+    padding: 30px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -1047,6 +1049,8 @@ body {
     justify-content: center;
     margin-bottom: 20px;
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    flex-shrink: 0; /* Prevents the icon from shrinking when text wraps */
+    margin-bottom: 20px; /* Gives it breathing room above the title/description */
 }
 
 .quiz-start-icon i {
@@ -1067,7 +1071,9 @@ body {
     color: var(--text-light);
     margin-bottom: 25px;
     line-height: 1.5;
-    max-width: 400px;
+    max-width: 600px; /* Prevents the text from getting too wide and hard to read */
+    margin: 0 auto 20px auto;
+    line-height: 1.5;
 }
 
 .quiz-start-stats {
@@ -1560,7 +1566,19 @@ body {
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
+/* Article Image Styling */
+.wiki-image-container {
+    margin: 20px 0;
+    text-align: center; /* Centers the image */
+}
 
+.wiki-article-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md); /* Uses your existing CSS variables */
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+}
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

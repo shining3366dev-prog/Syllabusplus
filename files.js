@@ -1,6 +1,6 @@
 /**
  * SYLLABUS+ FILE EXPLORER ENGINE
- * Fixed: Year switching scrolls to top, clears file URL param, handles empty file lists
+ * Fixed: Year switching scrolls to top, clears file URL param, handles empty file lists, added image support
  */
 
 // --- CONFIGURATION ---
@@ -91,6 +91,13 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
             const headingText = getField('heading');
             if (heading && headingText) {
                 heading.textContent = headingText;
+            }
+
+            // Update Image Language if applicable
+            const imgElement = section.querySelector('.wiki-article-img');
+            const imageStr = getField('image');
+            if (imgElement && imageStr) {
+                imgElement.src = imageStr.startsWith('http') ? imageStr : `${BASE_URL}/articles_data/${imageStr}`;
             }
             
             switch(sectionData.type) {
@@ -290,20 +297,12 @@ async function loadFiles(isSilent = false) {
         }
 
         // 5. AUTO-SELECT FILE - DISABLED ON MOBILE
-        // ⚠️ FIX: Only auto-load if there are files available
         if (!isSilent && !isMobile() && window.currentFilesList.length > 0) {
-            console.log("✓ Auto-load enabled (desktop mode)");
-            console.log("📊 Total files available:", window.currentFilesList.length);
-            
             requestAnimationFrame(() => {
                 setTimeout(() => {
                     let targetFile = null;
                     
-                    console.log("🔍 Starting auto-load process...");
-                    
-                    // Option A: Try to load file from URL parameter (only if it exists in current list)
                     if (fileToAutoLoad) {
-                        console.log("🤖 Checking file from URL:", fileToAutoLoad);
                         const decoded = decodeURIComponent(fileToAutoLoad);
                         
                         targetFile = window.currentFilesList.find(f => 
@@ -313,29 +312,15 @@ async function loadFiles(isSilent = false) {
                             f.name === decoded ||
                             f.name.includes(decoded)
                         );
-                        
-                        if (targetFile) {
-                            console.log("✅ Found file from URL:", targetFile.link);
-                        } else {
-                            console.warn("❌ File from URL not in current year/filter:", decoded);
-                        }
                     }
                     
-                    // Option B: If no URL param or file not found, load first available file
                     if (!targetFile && window.currentFilesList.length > 0) {
                         targetFile = window.currentFilesList[0];
-                        console.log("📄 Loading first file by default:", targetFile.link);
                     }
                     
-                    // Load the target file
                     if (targetFile) {
-                        console.log("🎯 Opening file:", targetFile.link);
-                        
-                        // Find the DOM element and expand folders
                         const treeItem = document.querySelector(`.file-item[data-link="${targetFile.link}"]`);
                         if (treeItem) {
-                            console.log("✅ Found DOM element for file");
-                            // Expand parent folders
                             let parent = treeItem.parentElement;
                             while (parent && parent !== treeContainer) {
                                 if (parent.tagName === 'DETAILS') {
@@ -344,40 +329,29 @@ async function loadFiles(isSilent = false) {
                                 parent = parent.parentElement;
                             }
                             
-                            // Scroll to it
                             treeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }
-                        
-                        // Call previewFile to display the content
-                        console.log("🚀 Calling previewFile()");
                         previewFile(targetFile.link, treeItem);
                     }
                 }, 400);
             });
         } 
         else if (!isSilent && !isMobile() && window.currentFilesList.length === 0) {
-            // ⚠️ FIX: Show empty state when no files available
-            console.log("⚠️ No files available for this year/filter");
             const emptyState = document.getElementById('empty-state');
             if (emptyState) {
                 emptyState.style.display = 'flex';
             }
             
-            // Hide PDF and article viewers
             const pdfViewer = document.getElementById('pdf-viewer');
             const articleViewer = document.getElementById('article-viewer');
             if (pdfViewer) pdfViewer.classList.add('hidden');
             if (articleViewer) articleViewer.classList.add('hidden');
         }
         else if (!isSilent && isMobile()) {
-            console.log("📱 Mobile detected - auto-load disabled, showing file tree");
-            // On mobile, keep showing the file tree - don't auto-load
             const emptyState = document.getElementById('empty-state');
             if (emptyState) emptyState.style.display = 'none';
             
-            // If there's a file param AND files are available, load it
             if (fileToAutoLoad && window.currentFilesList.length > 0) {
-                console.log("📱 File param detected, will load:", fileToAutoLoad);
                 requestAnimationFrame(() => {
                     setTimeout(() => {
                         const decoded = decodeURIComponent(fileToAutoLoad);
@@ -393,8 +367,6 @@ async function loadFiles(isSilent = false) {
             }
         }
         else if (isSilent) {
-            console.log("⊘ Auto-load skipped (silent mode - language switch)");
-            // Language switch logic
             const activeLink = document.getElementById('article-viewer')?.getAttribute('data-current-file');
             if (activeLink) {
                 setTimeout(() => {
@@ -408,7 +380,6 @@ async function loadFiles(isSilent = false) {
         console.error('File Load Error:', err);
         if (treeContainer) treeContainer.innerHTML = `<p style="color:red;">Error loading files.</p>`;
         
-        // Show empty state on error (only on desktop)
         if (!isMobile()) {
             const emptyState = document.getElementById('empty-state');
             if (emptyState) emptyState.style.display = 'flex';
@@ -440,17 +411,14 @@ async function setupYearDropdown(subjectName) {
     }
 }
 
-// ⚠️ FIX: Scroll to top when switching years so empty state is visible
 window.updateFileYear = (year) => {
     localStorage.setItem('selectedYear', year);
     
-    // Clear the file parameter from URL when switching years to prevent loading wrong file
     const currentSubject = getSubjectFromURL();
     const currentLang = getLangFromURL();
     const newUrl = `files.html?subject=${encodeURIComponent(currentSubject)}&lang=${currentLang}`;
     window.history.pushState({}, '', newUrl);
     
-    // Hide current preview and show empty state
     const views = {
         pdf: document.getElementById('pdf-viewer'),
         wiki: document.getElementById('article-viewer'),
@@ -461,10 +429,8 @@ window.updateFileYear = (year) => {
     if (views.wiki) views.wiki.classList.add('hidden');
     if (views.empty && !isMobile()) views.empty.style.display = 'flex';
     
-    // Clear active file selection
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     
-    // Scroll to top immediately so the empty state is visible
     window.scrollTo(0, 0);
     const sidebarElement = document.querySelector('.file-tree-content');
     if (sidebarElement) {
@@ -476,8 +442,6 @@ window.updateFileYear = (year) => {
 
 // --- PREVIEW LOGIC ---
 window.previewFile = (url, element) => {
-    console.log('📄 previewFile() called with:', url);
-    
     const views = {
         pdf: document.getElementById('pdf-viewer'),
         wiki: document.getElementById('article-viewer'),
@@ -491,13 +455,11 @@ window.previewFile = (url, element) => {
         if (views.wiki) views.wiki.scrollTop = 0; 
     }
 
-    // Hide all views
     Object.values(views).forEach(el => {
         if (el) el.classList.add('hidden');
     });
     if (views.empty) views.empty.style.display = 'none';
 
-    // Update active state
     document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
     
     if (!element) {
@@ -506,23 +468,19 @@ window.previewFile = (url, element) => {
     
     if (element) {
         element.classList.add('active');
-        console.log('✅ File item marked as active');
     }
 
-    // Mobile view handling
     if (isMobile()) {
         const wrapper = document.querySelector('.explorer-wrapper');
         if (wrapper) wrapper.classList.add('preview-mode');
     }
 
-    // Update URL without page refresh
     const currentSubject = getSubjectFromURL();
     const currentLang = getLangFromURL();
     const fileName = url.split('/').pop();
     const newUrl = `files.html?subject=${encodeURIComponent(currentSubject)}&lang=${currentLang}&file=${encodeURIComponent(fileName)}`;
     window.history.pushState({ file: url }, '', newUrl);
 
-    // Load content
     if (url.endsWith('.json')) {
         if (views.wiki) views.wiki.classList.remove('hidden');
         renderWiki(`${BASE_URL}/articles_data/${url}`, url);
@@ -540,13 +498,10 @@ window.closePreview = () => {
     if (wrapper) wrapper.classList.remove('preview-mode');
 };
 
-// --- NAVIGATION ---
 window.backToSubjects = () => {
-    // On mobile, close preview mode and show file tree
     if (isMobile()) {
         window.closePreview();
     } else {
-        // On desktop, navigate to subjects page
         const currentLang = getLangFromURL();
         window.location.href = `index.html?lang=${currentLang}#subjects`;
     }
@@ -569,7 +524,6 @@ async function renderWiki(url, originalFilename) {
     const isSameFile = (storedFile === originalFilename && storedLang === currentLang);
 
     if (!isSameFile) {
-        // Show loading state with spinner
         container.innerHTML = `
             <div class="article-loading-state">
                 <div class="loading-spinner-wrapper">
@@ -626,7 +580,6 @@ async function renderWiki(url, originalFilename) {
         });
         
     } catch (err) { 
-        console.error("Render error:", err);
         container.innerHTML = `<div class="error-msg">⚠️ ${err.message}</div>`; 
     }
 }
@@ -636,9 +589,19 @@ function renderSection(s, index, lang) {
     const getField = (base) => s[`${base}_${lang}`] || s[base] || '';
     const heading = getField('heading');
     const content = parseInlineMath(getField('content'));
+    const image = getField('image'); // Added image reading here!
     
     let html = `<section class="wiki-section">`;
     if (heading) html += `<h2>${heading}</h2>`;
+
+    // Render the image if it exists in the JSON
+    if (image) {
+        const imgSrc = image.startsWith('http') ? image : `${BASE_URL}/articles_data/${image}`;
+        html += `
+            <div class="wiki-image-container">
+                <img src="${imgSrc}" alt="${heading || 'Article Image'}" class="wiki-article-img" loading="lazy">
+            </div>`;
+    }
 
     switch (s.type) {
         case 'intro':
@@ -1020,12 +983,6 @@ function renderTree(structure) {
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("=== PAGE LOADED ===");
-    console.log("Subject:", getSubjectFromURL());
-    console.log("Language:", getLangFromURL());
-    console.log("File param:", getFileFromURL());
-    console.log("Mobile:", isMobile());
-    console.log("Starting loadFiles()...");
     loadFiles();
 });
 
@@ -1043,7 +1000,6 @@ window.addEventListener('popstate', (event) => {
             if (el) el.classList.add('hidden');
         });
         
-        // On mobile, just close preview mode
         if (isMobile()) {
             window.closePreview();
         } else {
