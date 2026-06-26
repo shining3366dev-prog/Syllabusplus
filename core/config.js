@@ -4,9 +4,9 @@
  * Single source of truth for the whole ecosystem. Every page/branch should read
  * from window.NONAME.config instead of hard-coding environment logic.
  *
- * This file replaces the duplicated BASE_URL detection that currently lives in
- * script.js, files.js and localisation.js. Those files still read window.BASE_URL,
- * so we keep that global in sync for backwards compatibility during migration.
+ * This file replaces the duplicated BASE_URL detection that used to live in
+ * script.js / files.js. Those files still read window.BASE_URL, so we keep that
+ * global in sync for backwards compatibility.
  *
  * Load order: this MUST load before branches.js and before any app script.
  */
@@ -32,17 +32,23 @@
 
     // --- Routes (single place that knows page filenames) ---
     // JS should NEVER hard-code a page filename. Reference these keys via
-    // NONAME.url('learnHome', { lang }) instead, so renaming a page only
+    // NONAME.url('sbplus', { lang }) instead, so renaming a page only
     // touches this object.
     routes: {
       hub: 'index.html',        // ecosystem front door
-      learnHome: 'learn.html',  // Syllabus+ learning home (was index.html)
+      sbplus: 'sbplus.html',    // sbplus learning home (was learn.html / index.html)
       files: 'files.html',      // resource explorer
+      about: 'about.html',
+      help: 'help.html',
+      contact: 'contact.html',
+      feedback: 'feedback.html',
     },
 
     // --- Localisation ---
     defaultLang: 'en',
-    langs: ['en', 'fr', 'de'],
+    langs: ['en', 'de', 'fr'],            // display order: English · German · French
+    langNames: { en: 'English', de: 'Deutsch', fr: 'Français' },
+    langShort: { en: 'EN', de: 'DE', fr: 'FR' },
 
     // --- Feature flags (flip these as branches mature) ---
     flags: {
@@ -50,6 +56,47 @@
       auth: true,       // Firebase Google login (auth.js)
       analytics: true,  // Firebase analytics
     },
+
+    // --- Navigation menus (shared chrome reads these by page context) ---
+    // Each item: { i18n, en, route, params, hash }. layout.js resolves route via
+    // NONAME.url(). Keep these minimal — the ecosystem feel comes from sameness.
+    nav: {
+      hub: [
+        { i18n: 'nav_apps', en: 'Apps', hash: '#apps' },
+        { i18n: 'nav_about', en: 'About', route: 'about' },
+      ],
+      sbplus: [
+        { i18n: 'nav_home', en: 'Home', route: 'sbplus' },
+        { i18n: 'nav_subjects', en: 'Subjects', route: 'sbplus', hash: '#subjects' },
+        { i18n: 'nav_about', en: 'About', route: 'about' },
+        { i18n: 'nav_help', en: 'Help', route: 'help' },
+      ],
+      page: [
+        { i18n: 'nav_home', en: 'Home', route: 'hub' },
+        { i18n: 'nav_subjects', en: 'sbplus', route: 'sbplus' },
+        { i18n: 'nav_about', en: 'About', route: 'about' },
+      ],
+    },
+
+    // --- Footer columns (identical on every page = ecosystem cohesion) ---
+    footer: [
+      {
+        i18n: 'footer_explore', en: 'Explore',
+        links: [
+          { i18n: 'nav_home', en: 'Home', route: 'hub' },
+          { i18n: 'nav_subjects', en: 'Subjects', route: 'sbplus', hash: '#subjects' },
+          { i18n: 'nav_about', en: 'About', route: 'about' },
+        ],
+      },
+      {
+        i18n: 'footer_support', en: 'Support',
+        links: [
+          { i18n: 'footer_help', en: 'Help Center', route: 'help' },
+          { i18n: 'footer_contact', en: 'Contact Us', route: 'contact' },
+          { i18n: 'footer_feedback', en: 'Feedback', route: 'feedback' },
+        ],
+      },
+    ],
   };
 
   const NS = (global.NONAME = global.NONAME || {});
@@ -59,8 +106,8 @@
    * Build an internal URL from a route key (no hard-coded filenames in callers).
    *   NONAME.url('files', { subject: 'Maths', lang: 'fr' })
    *     -> "files.html?subject=Maths&lang=fr"
-   *   NONAME.url('learnHome', { lang: 'en' }, '#subjects')
-   *     -> "learn.html?lang=en#subjects"
+   *   NONAME.url('sbplus', { lang: 'en' }, '#subjects')
+   *     -> "sbplus.html?lang=en#subjects"
    * Unknown keys fall through as-is, so NONAME.url('files.html') still works.
    */
   NS.url = function (route, params, hash) {

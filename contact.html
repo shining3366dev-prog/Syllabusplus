@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact — noname</title>
+<meta name="description" content="Get in touch with noname — Discord, GitHub or email." />
+<meta name="theme-color" content="#faf9f7" />
+<link rel="icon" type="image/png" href="images/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+<div class="main-content">
+  <section class="page container">
+    <div class="page-head">
+      <span class="eyebrow" data-i18n="footer_contact">Contact Us</span>
+      <h1 class="page-title" data-i18n="contact_title">Let’s talk.</h1>
+      <p class="page-lede" data-i18n="contact_lede">Questions, requests for a topic, or just hello — pick whatever’s easiest.</p>
+    </div>
+
+    <div class="prose">
+      <div class="tile-grid">
+        <a class="tile" href="https://discord.gg/hQGbsEfH" target="_blank" rel="noopener">
+          <div class="tile-icon"><i class="fa-brands fa-discord"></i></div>
+          <h3>Discord</h3>
+          <p data-i18n="contact_discord">The fastest way to reach us and other students.</p>
+        </a>
+        <a class="tile" href="https://github.com/shining3366dev-prog" target="_blank" rel="noopener">
+          <div class="tile-icon"><i class="fa-brands fa-github"></i></div>
+          <h3>GitHub</h3>
+          <p data-i18n="contact_github">Found a bug or want to suggest a feature? Open an issue.</p>
+        </a>
+        <!-- Replace the address below with your preferred contact email. -->
+        <a class="tile" id="email-tile" href="mailto:hello@example.com">
+          <div class="tile-icon"><i class="fa-solid fa-envelope"></i></div>
+          <h3 data-i18n="contact_email_h">Email</h3>
+          <p data-i18n="contact_email_p">Prefer email? Write to us directly.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>window.NONAME_PAGE = { context: 'page', active: 'contact' };</script>
+<script src="./core/config.js"></script>
+<script src="./layout.js"></script>
+<script type="module" src="./auth.js"></script>
+</body>
+</html>
