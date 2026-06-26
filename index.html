@@ -1,88 +1,301 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Syllabus+ - Home</title>
-    <meta name="title" content="Syllabus+ - Student Resource Center">
-    <meta name="description" content="The ultimate student resource center. Access study guides, worksheets, past papers, and subject materials for years S1 through S7.">
-    <meta name="keywords" content="syllabus, student resources, study guides, past papers, worksheets, education, high school, S1, S7">
-    <meta name="author" content="Syllabus+ Team">
-    <meta name="theme-color" content="#4a90e2"> <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.your-website-url.com/">
-    <meta property="og:title" content="Syllabus+ - Student Resource Center">
-    <meta property="og:description" content="Access study guides, worksheets, and past papers. Find your subject and start studying smarter.">
-    <meta property="og:image" content="https://www.your-website-url.com/images/social-preview.jpg">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>noname</title>
+<meta name="description" content="noname — one home for a growing ecosystem of tools." />
+<meta name="theme-color" content="#07070b" />
+<link rel="icon" type="image/png" href="images/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  :root {
+    --bg: #07070b;
+    --text: #f5f5f7;
+    --text-2: #9a9aa6;
+    --text-3: #6b6b76;
+    --glass: rgba(255, 255, 255, 0.045);
+    --glass-2: rgba(255, 255, 255, 0.07);
+    --stroke: rgba(255, 255, 255, 0.09);
+    --stroke-2: rgba(255, 255, 255, 0.14);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  }
 
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://www.your-website-url.com/">
-    <meta property="twitter:title" content="Syllabus+ - Student Resource Center">
-    <meta property="twitter:description" content="Access study guides, worksheets, and past papers. Find your subject and start studying smarter.">
-    <meta property="twitter:image" content="https://www.your-website-url.com/images/social-preview.jpg">
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <link rel="icon" type="image/png" href="images/favicon.png">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ---------- Aurora material background ---------- */
+  .aurora { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+  .aurora::before, .aurora::after, .aurora span {
+    content: ""; position: absolute; border-radius: 50%;
+    filter: blur(90px); opacity: 0.55; will-change: transform;
+  }
+  .aurora::before {
+    width: 50vw; height: 50vw; left: -10vw; top: -12vw;
+    background: radial-gradient(circle, #6d4bff 0%, transparent 65%);
+    animation: drift1 26s var(--ease) infinite alternate;
+  }
+  .aurora::after {
+    width: 46vw; height: 46vw; right: -12vw; top: 6vw;
+    background: radial-gradient(circle, #19b6c4 0%, transparent 65%);
+    animation: drift2 32s var(--ease) infinite alternate;
+  }
+  .aurora span {
+    width: 40vw; height: 40vw; left: 28vw; bottom: -18vw;
+    background: radial-gradient(circle, #ff5c8a 0%, transparent 65%);
+    opacity: 0.4; animation: drift3 30s var(--ease) infinite alternate;
+  }
+  @keyframes drift1 { to { transform: translate(8vw, 6vw) scale(1.15); } }
+  @keyframes drift2 { to { transform: translate(-6vw, 8vw) scale(1.1); } }
+  @keyframes drift3 { to { transform: translate(-10vw, -6vw) scale(1.2); } }
+  /* subtle grain/vignette for depth */
+  .vignette {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(120% 80% at 50% 0%, transparent 40%, rgba(0,0,0,0.55) 100%);
+  }
+
+  /* ---------- Shell ---------- */
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(160%) blur(18px);
+    -webkit-backdrop-filter: saturate(160%) blur(18px);
+    background: rgba(7, 7, 11, 0.55);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .topbar-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+
+  .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: var(--text); }
+  .brand svg { width: 30px; height: 30px; display: block; }
+  .brand-word {
+    font-weight: 700; font-size: 1.18rem; letter-spacing: -0.02em;
+    background: linear-gradient(180deg, #ffffff, #c8c8d4);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .btn-login {
+    font-family: var(--font); font-size: 0.85rem; font-weight: 500; color: var(--text);
+    text-decoration: none; cursor: pointer;
+    padding: 9px 18px; border-radius: 999px;
+    background: var(--glass); border: 1px solid var(--stroke-2);
+    transition: background 0.3s var(--ease), transform 0.3s var(--ease), border-color 0.3s var(--ease);
+  }
+  .btn-login:hover { background: var(--glass-2); border-color: rgba(255,255,255,0.28); transform: translateY(-1px); }
+
+  /* ---------- Hero ---------- */
+  .hero { text-align: center; padding: 120px 0 70px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.74rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-2); padding: 7px 15px; border-radius: 999px;
+    background: var(--glass); border: 1px solid var(--stroke); margin-bottom: 30px;
+  }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #2bd4a8; box-shadow: 0 0 10px #2bd4a8; }
+
+  .wordmark {
+    font-size: clamp(4rem, 16vw, 10rem); font-weight: 800; letter-spacing: -0.05em; line-height: 0.9;
+    background: linear-gradient(180deg, #ffffff 0%, #d6d3f0 55%, #8f8ac2 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 12px 40px rgba(124, 92, 255, 0.25));
+  }
+  .hero-tagline { margin-top: 24px; font-size: clamp(1.05rem, 2.5vw, 1.4rem); font-weight: 300; color: var(--text-2); }
+
+  /* ---------- Explore ---------- */
+  .explore { padding: 30px 0 110px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 28px; }
+  .section-title { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; }
+  .section-count { font-size: 0.82rem; color: var(--text-3); font-weight: 500; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 18px; }
+
+  .app-card {
+    position: relative; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto;
+    column-gap: 20px; row-gap: 14px; align-items: center; text-align: left;
+    padding: 26px; border-radius: 26px; text-decoration: none; color: var(--text);
+    background: var(--glass); border: 1px solid var(--stroke);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 24px 60px -30px rgba(0,0,0,0.8);
+    transition: transform 0.5s var(--ease), border-color 0.5s var(--ease), box-shadow 0.5s var(--ease);
+    cursor: pointer; font: inherit; overflow: hidden;
+  }
+  .app-card-glow {
+    position: absolute; inset: -1px; border-radius: 26px; opacity: 0; pointer-events: none;
+    background: radial-gradient(120% 120% at 18% 0%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%);
+    transition: opacity 0.5s var(--ease);
+  }
+  a.app-card:hover { transform: translateY(-6px); border-color: color-mix(in srgb, var(--accent) 45%, var(--stroke)); }
+  a.app-card:hover .app-card-glow { opacity: 1; }
+  a.app-card:hover .app-icon { transform: scale(1.06) rotate(-1.5deg); }
+  .app-card.is-ghost { cursor: default; opacity: 0.62; }
+  .app-card.is-ghost:hover { transform: none; }
+
+  /* squircle app icon (iOS continuous-curvature) */
+  .app-icon {
+    grid-row: 1 / span 1; position: relative; width: 72px; height: 72px;
+    clip-path: url(#squircle); display: grid; place-items: center;
+    box-shadow: 0 10px 30px -8px rgba(0,0,0,0.7);
+    transition: transform 0.5s var(--ease);
+  }
+  .app-icon-sheen {
+    position: absolute; inset: 0; clip-path: url(#squircle);
+    background: linear-gradient(160deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.05) 38%, transparent 60%);
+    mix-blend-mode: overlay; pointer-events: none;
+  }
+  .app-icon-glyph { font-size: 1.7rem; color: #fff; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3)); }
+  .app-icon-img { width: 58%; height: 58%; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35)); }
+
+  .app-meta { grid-column: 2; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .app-title { display: flex; align-items: center; gap: 9px; font-size: 1.18rem; font-weight: 600; letter-spacing: -0.01em; }
+  .app-tagline { font-size: 0.86rem; font-weight: 500; color: var(--text-2); }
+  .app-desc { font-size: 0.82rem; color: var(--text-3); line-height: 1.45; }
+
+  .chip {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px; border: 1px solid var(--stroke-2); color: var(--text-2);
+  }
+  .chip-soon { background: rgba(255,255,255,0.04); }
+
+  .app-cta {
+    grid-column: 2; display: inline-flex; align-items: center; gap: 7px;
+    font-size: 0.85rem; font-weight: 600; color: var(--accent); margin-top: 2px;
+  }
+  .app-cta i { transition: transform 0.4s var(--ease); }
+  a.app-card:hover .app-cta i { transform: translateX(4px); }
+  .app-cta.muted { color: var(--text-3); font-weight: 500; }
+
+  /* ---------- Footer ---------- */
+  footer { border-top: 1px solid var(--stroke); padding: 34px 0; }
+  .foot-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .foot-copy { font-size: 0.8rem; color: var(--text-3); }
+  .foot-links { display: flex; gap: 18px; }
+  .foot-links a { color: var(--text-2); font-size: 1.05rem; text-decoration: none; transition: color 0.3s var(--ease); }
+  .foot-links a:hover { color: var(--text); }
+
+  /* ---------- Entrance reveal ---------- */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 560px) {
+    .hero { padding: 90px 0 50px; }
+    .grid { grid-template-columns: 1fr; }
+    .app-card { padding: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aurora::before, .aurora::after, .aurora span { animation: none; }
+    .reveal { transition: none; opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
 </head>
 <body>
-    <div class="main-content">
-        <section class="hero">
-            <div class="hero-content">
-                <h1 data-i18n="hero_title">Student Resource Center</h1>
-                <p data-i18n="hero_desc">Access study guides, worksheets, and past papers.</p>
-                <a href="#subjects" class="cta-button" data-i18n="cta_find">Find Your Subject</a>
-            </div>
-        </section>
-        
-        <div class="app-layout" id="subjects">
-            <aside class="sidebar-filter">
-                <div class="sidebar-header-internal">
-                    <h3 data-i18n="sidebar_year">Select Year</h3>
-                    <p class="filter-subtitle" data-i18n="sidebar_subtitle">Filter by year level</p>
-                </div>
-                
-                <div class="year-buttons desktop-view">
-                    <button class="year-btn active" onclick="filterYear('ALL')">
-                        <i class="fa-solid fa-layer-group"></i> <span data-i18n="sidebar_all">All Years</span>
-                    </button>
-                    <button class="year-btn" onclick="filterYear('S1')">S1 (<span data-i18n="year_label">Year</span> 1)</button>
-                    <button class="year-btn" onclick="filterYear('S2')">S2 (<span data-i18n="year_label">Year</span> 2)</button>
-                    <button class="year-btn" onclick="filterYear('S3')">S3 (<span data-i18n="year_label">Year</span> 3)</button>
-                    <button class="year-btn" onclick="filterYear('S4')">S4 (<span data-i18n="year_label">Year</span> 4)</button>
-                    <button class="year-btn" onclick="filterYear('S5')">S5 (<span data-i18n="year_label">Year</span> 5)</button>
-                    <button class="year-btn" onclick="filterYear('S6')">S6 (<span data-i18n="year_label">Year</span> 6)</button>
-                    <button class="year-btn" onclick="filterYear('S7')">S7 (<span data-i18n="year_label">Year</span> 7)</button>
-                </div>
 
-                <div class="year-select-wrapper mobile-view">
-                    <select id="mobile-year-select" class="year-dropdown" onchange="filterYear(this.value)">
-                        <option value="ALL" data-i18n="sidebar_all">All Years</option>
-                        <option value="S1">S1 (Year 1)</option>
-                        <option value="S2">S2 (Year 2)</option>
-                        <option value="S3">S3 (Year 3)</option>
-                        <option value="S4">S4 (Year 4)</option>
-                        <option value="S5">S5 (Year 5)</option>
-                        <option value="S6">S6 (Year 6)</option>
-                        <option value="S7">S7 (Year 7)</option>
-                    </select>
-                    <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
-                </div>
-            </aside>
+<!-- Aurora material -->
+<div class="aurora"><span></span></div>
+<div class="vignette"></div>
 
-            <main class="content-area">
-                <div class="section-header">
-                    <h2 class="section-title" data-i18n="grid_title">Browse Subjects</h2>
-                </div>
-                <div class="course-grid" id="subject-grid">
-                    <p data-i18n="grid_loading">Loading subjects...</p>
-                </div>
-            </main>
-        </div>
+<!-- Global squircle clip (iOS continuous-curvature superellipse) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <clipPath id="squircle" clipPathUnits="objectBoundingBox">
+      <path d="M0.5,0 C0.18,0 0.06,0.02 0.04,0.04 C0.02,0.06 0,0.18 0,0.5
+               C0,0.82 0.02,0.94 0.04,0.96 C0.06,0.98 0.18,1 0.5,1
+               C0.82,1 0.94,0.98 0.96,0.96 C0.98,0.94 1,0.82 1,0.5
+               C1,0.18 0.98,0.06 0.96,0.04 C0.94,0.02 0.82,0 0.5,0 Z" />
+    </clipPath>
+  </defs>
+</svg>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="index.html" aria-label="noname home">
+      <!-- Luxurious logo mark: squircle + ecosystem constellation -->
+      <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#8b7bff" />
+            <stop offset="0.5" stop-color="#5b8cff" />
+            <stop offset="1" stop-color="#19c4b6" />
+          </linearGradient>
+          <radialGradient id="logoSheen" cx="0.3" cy="0.2" r="0.9">
+            <stop stop-color="#ffffff" stop-opacity="0.55" />
+            <stop offset="0.5" stop-color="#ffffff" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+        <path d="M22,1 C9,1 4,1.5 2.7,2.7 C1.5,4 1,9 1,22 C1,35 1.5,40 2.7,41.3 C4,42.5 9,43 22,43 C35,43 40,42.5 41.3,41.3 C42.5,40 43,35 43,22 C43,9 42.5,4 41.3,2.7 C40,1.5 35,1 22,1 Z" fill="url(#logoGrad)" />
+        <path d="M22,1 C9,1 4,1.5 2.7,2.7 C1.5,4 1,9 1,22 C1,35 1.5,40 2.7,41.3 C4,42.5 9,43 22,43 C35,43 40,42.5 41.3,41.3 C42.5,40 43,35 43,22 C43,9 42.5,4 41.3,2.7 C40,1.5 35,1 22,1 Z" fill="url(#logoSheen)" />
+        <!-- ecosystem constellation: one home, many nodes -->
+        <g stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity="0.95">
+          <line x1="22" y1="22" x2="13" y2="13" />
+          <line x1="22" y1="22" x2="32" y2="14" />
+          <line x1="22" y1="22" x2="16" y2="32" />
+        </g>
+        <g fill="#fff">
+          <circle cx="22" cy="22" r="3.4" />
+          <circle cx="13" cy="13" r="2.1" />
+          <circle cx="32" cy="14" r="2.1" />
+          <circle cx="16" cy="32" r="2.1" />
+        </g>
+      </svg>
+      <span class="brand-word">noname</span>
+    </a>
+
+    <a href="#" class="btn-login" onclick="if(window.loginGoogle){loginGoogle();return false;}">Sign in</a>
+  </div>
+</div>
+
+<!-- Hero -->
+<header class="hero wrap">
+  <span class="eyebrow reveal"><span class="dot"></span> Ecosystem · v0.1</span>
+  <h1 class="wordmark reveal">noname</h1>
+  <p class="hero-tagline reveal" id="hub-tagline">One home. Many tools.</p>
+</header>
+
+<!-- Explore -->
+<main class="explore wrap">
+  <div class="section-head reveal">
+    <h2 class="section-title">Explore</h2>
+    <span class="section-count" id="explore-count">1 app · more soon</span>
+  </div>
+  <div class="grid reveal" id="explore-grid">
+    <p style="color:var(--text-3)">Loading…</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot-inner">
+    <span class="foot-copy">© 2026 noname · crafted with care</span>
+    <div class="foot-links">
+      <a href="https://discord.gg/hQGbsEfH" target="_blank" aria-label="Discord"><i class="fa-brands fa-discord"></i></a>
+      <a href="https://github.com/shining3366dev-prog" target="_blank" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
     </div>
+  </div>
+</footer>
 
-    <script src="./layout.js"></script>
-    <script src="./script.js"></script>
-    <script type="module" src="./auth.js"></script>
+<!-- Ecosystem core: load BEFORE app scripts -->
+<script src="./core/config.js"></script>
+<script src="./core/branches.js"></script>
+<!-- Auth (optional; powers the Sign in button) -->
+<script type="module" src="./auth.js"></script>
+<!-- Hub renderer -->
+<script src="./hub.js"></script>
 </body>
 </html>

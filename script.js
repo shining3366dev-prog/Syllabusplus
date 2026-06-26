@@ -5,13 +5,9 @@ function getLangFromURL() {
 }
 // 1. Load Data
 function loadSubjects() {
-    // Force fresh load from GitHub
-    let WIDGETS_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/course-card-widgets.csv?t=' + Date.now();
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        WIDGETS_URL = '../Syllabusplus-Database/course-card-widgets.csv'; 
-    } 
-    // THIS IS THE MISSING PART THAT FIXES YOUR IMAGES
-    const IMAGES_BASE_URL = 'https://shining3366dev-prog.github.io/Syllabusplus-Database/images/';
+    // Content backend resolved from core/config.js (no hard-coded paths).
+    const WIDGETS_URL = NONAME.dataUrl('course-card-widgets.csv', true);
+    const IMAGES_BASE_URL = NONAME.dataUrl('images/') ;
 
     console.log("Fetching URL:", WIDGETS_URL);
 
@@ -145,8 +141,9 @@ function renderGrid(selectedYear) {
             ? (window.I18N_DATA?.['view_files']?.[lang] || 'View Files')
             : (window.I18N_DATA?.['coming_soon']?.[lang] || 'Coming Soon');
         
-        const linkHTML = subject.isAvailable 
-            ? `<button onclick="window.location.href='files.html?subject=${encodeURIComponent(subject.title)}&lang=${lang}'">${buttonText}</button>`
+        const filesUrl = NONAME.url('files', { subject: subject.title, lang: lang });
+        const linkHTML = subject.isAvailable
+            ? `<button onclick="window.location.href='${filesUrl}'">${buttonText}</button>`
             : `<button disabled>${buttonText}</button>`;
             
         let yearBadgeHTML = '';

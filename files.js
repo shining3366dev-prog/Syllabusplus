@@ -8,8 +8,10 @@ function getUIString(key, lang) {
     return window.I18N_DATA?.[key]?.[lang] || key;
 }
 
-const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-const BASE_URL = IS_LOCAL ? '../Syllabusplus-Database' : 'https://shining3366dev-prog.github.io/Syllabusplus-Database';
+// Content backend resolved from core/config.js (falls back if core is absent).
+const BASE_URL = (window.NONAME && window.NONAME.config && window.NONAME.config.databaseUrl)
+    || window.BASE_URL
+    || '../Syllabusplus-Database';
 
 window.BASE_URL = BASE_URL;
 window.quizzes = window.quizzes || {};
@@ -416,7 +418,7 @@ window.updateFileYear = (year) => {
     
     const currentSubject = getSubjectFromURL();
     const currentLang = getLangFromURL();
-    const newUrl = `files.html?subject=${encodeURIComponent(currentSubject)}&lang=${currentLang}`;
+    const newUrl = NONAME.url('files', { subject: currentSubject, lang: currentLang });
     window.history.pushState({}, '', newUrl);
     
     const views = {
@@ -478,7 +480,7 @@ window.previewFile = (url, element) => {
     const currentSubject = getSubjectFromURL();
     const currentLang = getLangFromURL();
     const fileName = url.split('/').pop();
-    const newUrl = `files.html?subject=${encodeURIComponent(currentSubject)}&lang=${currentLang}&file=${encodeURIComponent(fileName)}`;
+    const newUrl = NONAME.url('files', { subject: currentSubject, lang: currentLang, file: fileName });
     window.history.pushState({ file: url }, '', newUrl);
 
     if (url.endsWith('.json')) {
@@ -503,14 +505,14 @@ window.backToSubjects = () => {
         window.closePreview();
     } else {
         const currentLang = getLangFromURL();
-        window.location.href = `index.html?lang=${currentLang}#subjects`;
+        window.location.href = NONAME.url('learnHome', { lang: currentLang }, '#subjects');
     }
 };
 
 window.goBackToSubjects = (event) => {
     if (event) event.preventDefault();
     const currentLang = getLangFromURL();
-    window.location.href = `index.html?lang=${currentLang}#subjects`;
+    window.location.href = NONAME.url('learnHome', { lang: currentLang }, '#subjects');
 };
 
 // --- WIKI RENDERER ---

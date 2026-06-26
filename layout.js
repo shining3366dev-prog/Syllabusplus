@@ -8,11 +8,9 @@ function getLangFromURL() {
 
 // --- LOAD LOCALIZATION CSV ---
 async function initLocalisation() {
-    const BASE_URL = window.BASE_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
-        ? '../Syllabusplus-Database' 
-        : 'https://shining3366dev-prog.github.io/Syllabusplus-Database');
-    
-    const LOC_URL = `${BASE_URL}/localisation.csv?t=${Date.now()}`;
+    const LOC_URL = (window.NONAME && window.NONAME.dataUrl)
+        ? window.NONAME.dataUrl('localisation.csv', true)
+        : `${window.BASE_URL || '../Syllabusplus-Database'}/localisation.csv?t=${Date.now()}`;
 
     try {
         const res = await fetch(LOC_URL);
@@ -154,13 +152,13 @@ const footerHTML = `
 window.goToHome = function(event) {
     if (event) event.preventDefault();
     const currentLang = getLangFromURL();
-    window.location.href = `index.html?lang=${currentLang}`;
+    window.location.href = NONAME.url('learnHome', { lang: currentLang });
 };
 
 window.goToSubjects = function(event) {
     if (event) event.preventDefault();
     const currentLang = getLangFromURL();
-    window.location.href = `index.html?lang=${currentLang}#subjects`;
+    window.location.href = NONAME.url('learnHome', { lang: currentLang }, '#subjects');
 };
 
 // --- CHANGE LANGUAGE FUNCTION ---
@@ -199,7 +197,7 @@ window.changeLanguage = function(langCode, event) {
         loadFiles(true);
     }
     
-    // Reload course cards with translations (index.html)
+    // Reload course cards with translations (learn.html)
     if (typeof renderGrid === 'function') {
         const savedYear = localStorage.getItem('selectedYear') || 'ALL';
         renderGrid(savedYear);

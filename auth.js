@@ -29,9 +29,9 @@ const provider = new GoogleAuthProvider();
 // IMPORTANT: Keep attaching to window so your HTML onclick works
 window.loginGoogle = () => {
     signInWithPopup(auth, provider)
-        .then((result) => { 
+        .then((result) => {
             console.log("Logged in!");
-            window.location.href = "index.html"; 
+            window.location.reload(); // stay on the current page (no hard-coded filename)
         })
         .catch((error) => {
             console.error(error);

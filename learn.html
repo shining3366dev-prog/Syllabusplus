@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Syllabus+ - Home</title>
+    <meta name="title" content="Syllabus+ - Student Resource Center">
+    <meta name="description" content="The ultimate student resource center. Access study guides, worksheets, past papers, and subject materials for years S1 through S7.">
+    <meta name="keywords" content="syllabus, student resources, study guides, past papers, worksheets, education, high school, S1, S7">
+    <meta name="author" content="Syllabus+ Team">
+    <meta name="theme-color" content="#4a90e2"> <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.your-website-url.com/">
+    <meta property="og:title" content="Syllabus+ - Student Resource Center">
+    <meta property="og:description" content="Access study guides, worksheets, and past papers. Find your subject and start studying smarter.">
+    <meta property="og:image" content="https://www.your-website-url.com/images/social-preview.jpg">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.your-website-url.com/">
+    <meta property="twitter:title" content="Syllabus+ - Student Resource Center">
+    <meta property="twitter:description" content="Access study guides, worksheets, and past papers. Find your subject and start studying smarter.">
+    <meta property="twitter:image" content="https://www.your-website-url.com/images/social-preview.jpg">
+
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="main-content">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 data-i18n="hero_title">Student Resource Center</h1>
+                <p data-i18n="hero_desc">Access study guides, worksheets, and past papers.</p>
+                <a href="#subjects" class="cta-button" data-i18n="cta_find">Find Your Subject</a>
+            </div>
+        </section>
+        
+        <div class="app-layout" id="subjects">
+            <aside class="sidebar-filter">
+                <div class="sidebar-header-internal">
+                    <h3 data-i18n="sidebar_year">Select Year</h3>
+                    <p class="filter-subtitle" data-i18n="sidebar_subtitle">Filter by year level</p>
+                </div>
+                
+                <div class="year-buttons desktop-view">
+                    <button class="year-btn active" onclick="filterYear('ALL')">
+                        <i class="fa-solid fa-layer-group"></i> <span data-i18n="sidebar_all">All Years</span>
+                    </button>
+                    <button class="year-btn" onclick="filterYear('S1')">S1 (<span data-i18n="year_label">Year</span> 1)</button>
+                    <button class="year-btn" onclick="filterYear('S2')">S2 (<span data-i18n="year_label">Year</span> 2)</button>
+                    <button class="year-btn" onclick="filterYear('S3')">S3 (<span data-i18n="year_label">Year</span> 3)</button>
+                    <button class="year-btn" onclick="filterYear('S4')">S4 (<span data-i18n="year_label">Year</span> 4)</button>
+                    <button class="year-btn" onclick="filterYear('S5')">S5 (<span data-i18n="year_label">Year</span> 5)</button>
+                    <button class="year-btn" onclick="filterYear('S6')">S6 (<span data-i18n="year_label">Year</span> 6)</button>
+                    <button class="year-btn" onclick="filterYear('S7')">S7 (<span data-i18n="year_label">Year</span> 7)</button>
+                </div>
+
+                <div class="year-select-wrapper mobile-view">
+                    <select id="mobile-year-select" class="year-dropdown" onchange="filterYear(this.value)">
+                        <option value="ALL" data-i18n="sidebar_all">All Years</option>
+                        <option value="S1">S1 (Year 1)</option>
+                        <option value="S2">S2 (Year 2)</option>
+                        <option value="S3">S3 (Year 3)</option>
+                        <option value="S4">S4 (Year 4)</option>
+                        <option value="S5">S5 (Year 5)</option>
+                        <option value="S6">S6 (Year 6)</option>
+                        <option value="S7">S7 (Year 7)</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+                </div>
+            </aside>
+
+            <main class="content-area">
+                <div class="section-header">
+                    <h2 class="section-title" data-i18n="grid_title">Browse Subjects</h2>
+                </div>
+                <div class="course-grid" id="subject-grid">
+                    <p data-i18n="grid_loading">Loading subjects...</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Ecosystem core: must load before app scripts -->
+    <script src="./core/config.js"></script>
+    <script src="./layout.js"></script>
+    <script src="./script.js"></script>
+    <script type="module" src="./auth.js"></script>
+</body>
+</html>
