@@ -43,10 +43,23 @@ window.logoutUser = () => {
     signOut(auth).then(() => { window.location.reload(); });
 };
 
-onAuthStateChanged(auth, (user) => {
+// Re-applies the signed-in/out state to the nav button via data-i18n,
+// instead of hardcoding English text — lets layout.js's translatePage()
+// (and re-renders on language change) keep it correct in every language.
+window.applyAuthUI = () => {
     const loginBtn = document.querySelector('.btn-login');
-    if (user && loginBtn) {
-        loginBtn.innerHTML = "Logout";
-        loginBtn.onclick = window.logoutUser; // Note: referencing window.logoutUser directly helps
+    if (!loginBtn) return;
+    if (window.NONAME_USER) {
+        loginBtn.setAttribute('data-i18n', 'nav_logout');
+        loginBtn.onclick = (e) => { e.preventDefault(); window.logoutUser(); };
+    } else {
+        loginBtn.setAttribute('data-i18n', 'nav_signin');
+        loginBtn.onclick = (e) => { e.preventDefault(); if (window.loginGoogle) loginGoogle(); };
     }
+    if (typeof window.translatePage === 'function') window.translatePage();
+};
+
+onAuthStateChanged(auth, (user) => {
+    window.NONAME_USER = user;
+    window.applyAuthUI();
 });

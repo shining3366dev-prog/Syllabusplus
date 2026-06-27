@@ -4,14 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>About — noname</title>
-<meta name="description" content="About noname — a small, growing ecosystem of focused tools, starting with sbplus." />
+<meta name="description" content="About noname — a small, growing ecosystem of focused web tools. Vision, branches and roadmap." />
 <meta name="theme-color" content="#faf9f7" />
 <link rel="icon" type="image/png" href="images/favicon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<link rel="stylesheet" href="style.css?v=2" />
+<link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
 <div class="main-content">
@@ -19,31 +19,44 @@
     <div class="page-head">
       <span class="eyebrow" data-i18n="nav_about">About</span>
       <h1 class="page-title" data-i18n="about_title">One home. Many tools.</h1>
-      <p class="page-lede" data-i18n="about_lede">noname is a small, growing ecosystem of focused tools. We build one thing at a time, and we build it to last.</p>
+      <p class="page-lede" data-i18n="about_lede">noname is a small, growing ecosystem of focused web tools. We build one thing at a time, and we build it to last.</p>
     </div>
 
     <div class="prose">
       <h2 data-i18n="about_h_what">What noname is</h2>
-      <p data-i18n="about_p_what">noname is an umbrella for a handful of carefully made web apps. Instead of one bloated site that does everything poorly, each tool is its own “branch” — small, fast, and focused — sharing the same calm design, the same languages, and the same front door.</p>
+      <p data-i18n="about_p_what">noname is an umbrella for a handful of carefully made web apps. Instead of one bloated site that tries to do everything, each tool is its own “branch” — small, fast and focused — sharing the same calm design, the same three languages, and the same front door. Open the toolbox (the squares in the top-right) to move between them.</p>
 
-      <h2 data-i18n="about_h_sbplus">The first branch: sbplus</h2>
-      <p data-i18n="about_p_sbplus">sbplus is a study companion for school years S1–S7. It turns dry syllabus material into interactive lessons — readable articles, rendered maths, embedded demos and quick quizzes — in English, German and French.</p>
+      <h2 data-i18n="about_h_branches">Branches</h2>
+      <p data-i18n="about_p_branches">A <strong>branch</strong> is a self-contained app under the noname umbrella. It has its own logo and its own home, but it inherits the ecosystem’s chrome, accounts and design for free. New branches should feel like they always belonged. Today there is one branch live — <strong>Syllabus+</strong> — with more in the workshop.</p>
+      <p>
+        <a class="btn btn-primary" href="sbplus.html" data-i18n="about_cta">Open Syllabus+ <i class="fa-solid fa-arrow-right"></i></a>
+      </p>
 
-      <h2 data-i18n="about_h_principles">How we build</h2>
+      <h2 id="vision" data-i18n="about_h_vision">Vision</h2>
+      <p data-i18n="about_p_vision">A calm, coherent place where small tools compound into something bigger than the sum of its parts. The opposite of feature bloat: every screen earns its place, the look stays quiet and timeless, and the whole thing should feel like it respects your time and your attention.</p>
       <ul>
-        <li data-i18n="about_li_1"><strong>Less, but better.</strong> Every screen earns its place. If it isn’t used, it’s cut.</li>
+        <li data-i18n="about_li_1"><strong>Less, but better.</strong> If it isn’t used, it’s cut.</li>
         <li data-i18n="about_li_2"><strong>Quiet by default.</strong> Warm paper, ink text, generous space — content first.</li>
-        <li data-i18n="about_li_3"><strong>One ecosystem.</strong> Each new branch should feel like it always belonged.</li>
+        <li data-i18n="about_li_3"><strong>One ecosystem.</strong> Shared chrome, shared accounts, independent apps.</li>
       </ul>
 
-      <p style="margin-top:32px">
-        <a class="btn btn-primary" href="sbplus.html" data-i18n="about_cta">Open sbplus <i class="fa-solid fa-arrow-right"></i></a>
+      <h2 id="roadmap" data-i18n="about_h_roadmap">Roadmap</h2>
+      <p data-i18n="about_p_roadmap">Where things are headed — rough, honest, and subject to change.</p>
+      <ul>
+        <li data-i18n="about_rm_1"><strong>Now —</strong> Syllabus+ (S1–S7 study materials, articles, quizzes) in English, German and French.</li>
+        <li data-i18n="about_rm_2"><strong>Next —</strong> accounts that remember your language, progress and saved items across branches.</li>
+        <li data-i18n="about_rm_3"><strong>Later —</strong> more branches in the toolbox, and deeper links between them.</li>
+      </ul>
+
+      <p style="margin-top:32px;color:var(--ink-3)">
+        <span data-i18n="about_footer_note">Have an idea for a branch or a topic?</span>
+        <a class="btn-link" href="feedback.html" style="display:inline-flex">Tell us <i class="fa-solid fa-arrow-right"></i></a>
       </p>
     </div>
   </section>
 </div>
 
-<script>window.NONAME_PAGE = { context: 'page', active: 'about' };</script>
+<script>window.NONAME_PAGE = { context: 'page' };</script>
 <script src="./core/config.js"></script>
 <script src="./layout.js"></script>
 <script type="module" src="./auth.js"></script>

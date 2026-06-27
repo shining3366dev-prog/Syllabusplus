@@ -25,7 +25,7 @@
   const branches = [
     {
       id: 'sbplus',
-      name: 'sbplus',
+      name: 'Syllabus+',
       tagline: 'Study materials, articles & quizzes',
       description: 'Interactive lessons, math and quizzes for school years S1–S7.',
       icon: 'fa-solid fa-graduation-cap',

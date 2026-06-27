@@ -505,14 +505,14 @@ window.backToSubjects = () => {
         window.closePreview();
     } else {
         const currentLang = getLangFromURL();
-        window.location.href = NONAME.url('learnHome', { lang: currentLang }, '#subjects');
+        window.location.href = NONAME.url('sbplus', { lang: currentLang }, '#subjects');
     }
 };
 
 window.goBackToSubjects = (event) => {
     if (event) event.preventDefault();
     const currentLang = getLangFromURL();
-    window.location.href = NONAME.url('learnHome', { lang: currentLang }, '#subjects');
+    window.location.href = NONAME.url('sbplus', { lang: currentLang }, '#subjects');
 };
 
 // --- WIKI RENDERER ---

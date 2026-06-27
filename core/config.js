@@ -57,35 +57,38 @@
       analytics: true,  // Firebase analytics
     },
 
-    // --- Navigation menus (shared chrome reads these by page context) ---
-    // Each item: { i18n, en, route, params, hash }. layout.js resolves route via
-    // NONAME.url(). Keep these minimal — the ecosystem feel comes from sameness.
+    // --- Navbar links per context ---
+    // Two identities: the ecosystem (noname) and the Syllabus+ product.
+    // No text links — you switch apps via the launcher (9-square icon).
     nav: {
-      hub: [
-        { i18n: 'nav_apps', en: 'Apps', hash: '#apps' },
-        { i18n: 'nav_about', en: 'About', route: 'about' },
-      ],
-      sbplus: [
-        { i18n: 'nav_home', en: 'Home', route: 'sbplus' },
-        { i18n: 'nav_subjects', en: 'Subjects', route: 'sbplus', hash: '#subjects' },
-        { i18n: 'nav_about', en: 'About', route: 'about' },
-        { i18n: 'nav_help', en: 'Help', route: 'help' },
-      ],
-      page: [
-        { i18n: 'nav_home', en: 'Home', route: 'hub' },
-        { i18n: 'nav_subjects', en: 'sbplus', route: 'sbplus' },
-        { i18n: 'nav_about', en: 'About', route: 'about' },
-      ],
+      hub:    [],
+      page:   [],
+      sbplus: [],
     },
 
-    // --- Footer columns (identical on every page = ecosystem cohesion) ---
+    // --- Brand identity per context (independent logos, Google-style) ---
+    // mark: 'noname' = constellation squircle; 'sbplus' = the Syllabus+ icon.
+    brands: {
+      hub:    { name: 'noname',    mark: 'noname', route: 'hub' },
+      page:   { name: 'noname',    mark: 'noname', route: 'hub' },
+      sbplus: { name: 'Syllabus+', mark: 'sbplus', route: 'sbplus' },
+    },
+
+    // --- App launcher (the 9-square toolbox) — every app, hub included ---
+    launcher: [
+      { name: 'noname',    tagline: 'Ecosystem home',  mark: 'noname', route: 'hub' },
+      { name: 'Syllabus+', tagline: 'Study & quizzes',  mark: 'sbplus', route: 'sbplus' },
+    ],
+
+    // --- Footer (uniform on every page = ecosystem cohesion). About the whole
+    //     of noname, not just one app. Vision/Roadmap are anchors on About. ---
     footer: [
       {
-        i18n: 'footer_explore', en: 'Explore',
+        i18n: 'footer_ecosystem', en: 'Ecosystem',
         links: [
-          { i18n: 'nav_home', en: 'Home', route: 'hub' },
-          { i18n: 'nav_subjects', en: 'Subjects', route: 'sbplus', hash: '#subjects' },
           { i18n: 'nav_about', en: 'About', route: 'about' },
+          { i18n: 'footer_vision', en: 'Vision', route: 'about', hash: '#vision' },
+          { i18n: 'footer_roadmap', en: 'Roadmap', route: 'about', hash: '#roadmap' },
         ],
       },
       {

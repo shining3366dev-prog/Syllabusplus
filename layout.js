@@ -1,8 +1,9 @@
 /* ==========================================================================
-   noname — shared chrome (nav + footer + language)
-   Injected on EVERY page so the hub, sbplus and content pages feel like one
-   ecosystem. Page declares its context via window.NONAME_PAGE before this loads:
-     window.NONAME_PAGE = { context: 'hub'|'sbplus'|'page', active: 'about' };
+   noname — shared chrome (nav + footer + language + app launcher)
+   Injected on EVERY page. Two brand identities (ecosystem "noname" vs the
+   "Syllabus+" product) chosen by window.NONAME_PAGE.context. The 9-square
+   launcher (toolbox) switches between apps, the hub included.
+     window.NONAME_PAGE = { context: 'hub'|'sbplus'|'page', active?: 'route' };
    ========================================================================== */
 window.I18N_DATA = window.I18N_DATA || {};
 
@@ -15,9 +16,17 @@ const PAGE = window.NONAME_PAGE || { context: 'page' };
 const CFG = (window.NONAME && window.NONAME.config) || {};
 const LANG_NAMES = CFG.langNames || { en: 'English', de: 'Deutsch', fr: 'Français' };
 
-/* compact ecosystem mark: ink squircle + constellation (one home, many nodes) */
-const BRAND_MARK = `
-  <svg class="nav-brand-mark" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+/* ----- squircle clip (Apple curvature), injected once for all icons ----- */
+const SQUIRCLE_DEF =
+  `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <clipPath id="squircle" clipPathUnits="objectBoundingBox">
+      <path d="M0.5,0 C0.18,0 0.06,0.02 0.04,0.04 C0.02,0.06 0,0.18 0,0.5 C0,0.82 0.02,0.94 0.04,0.96 C0.06,0.98 0.18,1 0.5,1 C0.82,1 0.94,0.98 0.96,0.96 C0.98,0.94 1,0.82 1,0.5 C1,0.18 0.98,0.06 0.96,0.04 C0.94,0.02 0.82,0 0.5,0 Z"/>
+    </clipPath>
+  </defs></svg>`;
+
+/* ecosystem mark: ink squircle + constellation (one home, many nodes) */
+const MARK_NONAME =
+  `<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path d="M22,2 C10,2 5,2.5 3.7,3.7 C2.5,5 2,10 2,22 C2,34 2.5,39 3.7,40.3 C5,41.5 10,42 22,42 C34,42 39,41.5 40.3,40.3 C41.5,39 42,34 42,22 C42,10 41.5,5 40.3,3.7 C39,2.5 34,2 22,2 Z" fill="#161513"/>
     <g stroke="#faf9f7" stroke-width="1.6" stroke-linecap="round" opacity=".9">
       <line x1="22" y1="22" x2="13" y2="14"/><line x1="22" y1="22" x2="31" y2="15"/><line x1="22" y1="22" x2="17" y2="31"/>
@@ -25,20 +34,35 @@ const BRAND_MARK = `
     <g fill="#faf9f7"><circle cx="22" cy="22" r="3"/><circle cx="13" cy="14" r="2"/><circle cx="31" cy="15" r="2"/><circle cx="17" cy="31" r="2"/></g>
   </svg>`;
 
+/* 9-square toolbox (squircle squares = Apple curvature) */
+const WAFFLE_SVG =
+  `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <rect x="3" y="3" width="4" height="4" rx="1.4"/><rect x="10" y="3" width="4" height="4" rx="1.4"/><rect x="17" y="3" width="4" height="4" rx="1.4"/>
+    <rect x="3" y="10" width="4" height="4" rx="1.4"/><rect x="10" y="10" width="4" height="4" rx="1.4"/><rect x="17" y="10" width="4" height="4" rx="1.4"/>
+    <rect x="3" y="17" width="4" height="4" rx="1.4"/><rect x="10" y="17" width="4" height="4" rx="1.4"/><rect x="17" y="17" width="4" height="4" rx="1.4"/>
+  </svg>`;
+
+function markHTML(type) {
+  if (type === 'sbplus') return `<span class="brand-img"><img src="images/favicon.png" alt=""></span>`;
+  return MARK_NONAME;
+}
+
 /* ----- helpers ----- */
 function linkHref(item, lang) {
   if (item.route) return NONAME.url(item.route, { lang }, item.hash || '');
   return item.hash || '#';
 }
 function navItems(context) {
-  return (CFG.nav && CFG.nav[context]) || CFG.nav?.page || [];
+  return (CFG.nav && (CFG.nav[context] || CFG.nav.page)) || [];
+}
+function brandFor(context) {
+  return (CFG.brands && (CFG.brands[context] || CFG.brands.page)) || { name: 'noname', mark: 'noname', route: 'hub' };
 }
 
 /* ----- builders (re-callable so language switch can re-render) ----- */
 function buildNav() {
   const lang = getLangFromURL();
-  const suffix = PAGE.context !== 'hub' && PAGE.suffix
-    ? `<span class="nav-brand-suffix">${PAGE.suffix}</span>` : '';
+  const b = brandFor(PAGE.context);
 
   const links = navItems(PAGE.context).map((it) => {
     const active = PAGE.active && it.route === PAGE.active ? ' active' : '';
@@ -47,11 +71,12 @@ function buildNav() {
 
   return `
     <div class="nav-inner">
-      <a class="nav-brand" href="${NONAME.url('hub', { lang })}" aria-label="noname home">
-        ${BRAND_MARK}<span class="nav-brand-word">noname</span>${suffix}
+      <a class="nav-brand" href="${NONAME.url(b.route, { lang })}" aria-label="${b.name} home">
+        <span class="nav-brand-mark">${markHTML(b.mark)}</span><span class="nav-brand-word">${b.name}</span>
       </a>
       <nav class="nav-links" id="nav-links">${links}</nav>
       <div class="nav-right">
+        ${buildLauncher(lang)}
         ${buildLang(lang)}
         <a href="#" class="btn btn-ghost btn-login" data-i18n="nav_signin" onclick="if(window.loginGoogle){loginGoogle();}return false;">Sign in</a>
       </div>
@@ -61,9 +86,7 @@ function buildNav() {
 
 function buildLang(lang) {
   const opts = (CFG.langs || ['en', 'de', 'fr']).map((code) => `
-    <a href="javascript:void(0)" class="lang-opt ${code === lang ? 'active' : ''}" onclick="changeLanguage('${code}')">
-      ${LANG_NAMES[code]}
-    </a>`).join('');
+    <a href="javascript:void(0)" class="lang-opt ${code === lang ? 'active' : ''}" onclick="changeLanguage('${code}')">${LANG_NAMES[code]}</a>`).join('');
   return `
     <div class="lang" id="lang">
       <button class="lang-btn" id="lang-btn" aria-label="Language">
@@ -74,9 +97,27 @@ function buildLang(lang) {
     </div>`;
 }
 
+function buildLauncher(lang) {
+  const apps = (CFG.launcher || []).map((a) => `
+    <a class="launch-app" href="${NONAME.url(a.route, { lang })}">
+      <span class="launch-icon">${markHTML(a.mark)}</span>
+      <span class="launch-name">${a.name}</span>
+    </a>`).join('');
+  return `
+    <div class="launch" id="launch">
+      <button class="launch-btn" id="launch-btn" aria-label="Apps">${WAFFLE_SVG}</button>
+      <div class="launch-menu">
+        <div class="launch-head" data-i18n="launcher_title">Apps</div>
+        <div class="launch-grid">${apps}</div>
+      </div>
+    </div>`;
+}
+
 function buildFooter() {
   const lang = getLangFromURL();
-  const cols = (CFG.footer || []).map((col) => {
+  const f = CFG.footer;
+  const footerCols = Array.isArray(f) ? f : (f && (f[PAGE.context] || f.page)) || [];
+  const cols = footerCols.map((col) => {
     const links = col.links.map((l) =>
       `<a href="${linkHref(l, lang)}" data-i18n="${l.i18n}">${l.en}</a>`).join('');
     return `<div class="foot-col"><h4 data-i18n="${col.i18n}">${col.en}</h4>${links}</div>`;
@@ -125,17 +166,16 @@ function translatePage() {
     if (set && set[lang]) el.textContent = set[lang];
   });
 }
+window.translatePage = translatePage;
 
 window.changeLanguage = function (langCode) {
   const url = new URL(window.location.href);
   url.searchParams.set('lang', langCode);
   window.history.pushState({}, '', url);
 
-  // re-render chrome (updates link langs, active option, button label) then translate
   renderChrome();
   translatePage();
 
-  // re-render live surfaces if present
   if (typeof window.updateArticleLanguage === 'function') {
     const active = document.querySelector('.file-item.active');
     const link = active && active.getAttribute('data-link');
@@ -147,6 +187,17 @@ window.changeLanguage = function (langCode) {
 };
 
 /* ----- mount ----- */
+function dropdownToggle(wrapId, btnId) {
+  const wrap = document.getElementById(wrapId);
+  const btn = document.getElementById(btnId);
+  if (!wrap || !btn) return;
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.lang.open, .launch.open').forEach((el) => { if (el !== wrap) el.classList.remove('open'); });
+    wrap.classList.toggle('open');
+  };
+}
+
 function wireNavInteractions() {
   const toggle = document.getElementById('nav-toggle');
   const nav = document.getElementById('site-nav');
@@ -157,12 +208,13 @@ function wireNavInteractions() {
       i.className = nav.classList.contains('menu-open') ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
     };
   }
-  const lang = document.getElementById('lang');
-  const langBtn = document.getElementById('lang-btn');
-  if (lang && langBtn) {
-    langBtn.onclick = (e) => { e.stopPropagation(); lang.classList.toggle('open'); };
-    document.addEventListener('click', (e) => { if (!lang.contains(e.target)) lang.classList.remove('open'); });
-  }
+  dropdownToggle('lang', 'lang-btn');
+  dropdownToggle('launch', 'launch-btn');
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.lang.open, .launch.open').forEach((el) => {
+      if (!el.contains(e.target)) el.classList.remove('open');
+    });
+  });
 }
 
 function renderChrome() {
@@ -171,9 +223,13 @@ function renderChrome() {
   if (nav) nav.innerHTML = buildNav();
   if (foot) foot.innerHTML = buildFooter();
   wireNavInteractions();
+  if (typeof window.applyAuthUI === 'function') window.applyAuthUI();
 }
 
 function loadLayout() {
+  if (!document.getElementById('squircle')) {
+    document.body.insertAdjacentHTML('afterbegin', SQUIRCLE_DEF);
+  }
   if (!document.getElementById('site-nav')) {
     const header = document.createElement('header');
     header.className = 'nav'; header.id = 'site-nav';

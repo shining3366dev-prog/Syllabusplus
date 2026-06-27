@@ -111,8 +111,6 @@ h1, h2, h3, h4 { font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; m
 .nav-brand { display: flex; align-items: baseline; gap: 9px; }
 .nav-brand-mark { width: 24px; height: 24px; align-self: center; }
 .nav-brand-word { font-family: var(--serif); font-size: 1.28rem; font-weight: 600; letter-spacing: -0.01em; }
-.nav-brand-suffix { font-size: .82rem; color: var(--ink-3); font-weight: 500; }
-.nav-brand-suffix::before { content: "/ "; color: var(--line-2); }
 
 .nav-links { display: flex; align-items: center; gap: 26px; margin-left: 18px; }
 .nav-link {
@@ -138,7 +136,8 @@ h1, h2, h3, h4 { font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; m
 .lang-btn {
   display: inline-flex; align-items: center; gap: 7px;
   background: transparent; border: 1px solid var(--line-2); border-radius: var(--pill);
-  padding: .5rem .8rem; font-size: .8rem; font-weight: 500; color: var(--ink);
+  /* match the Sign in (.btn) height: same vertical padding, font-size, line-height, border */
+  padding: .8rem 1rem; font-size: .9rem; line-height: 1; font-weight: 500; color: var(--ink);
   transition: all .3s var(--ease);
 }
 .lang-btn:hover { border-color: var(--ink); }
@@ -160,6 +159,39 @@ h1, h2, h3, h4 { font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; m
 .lang-opt:hover { background: var(--paper-2); color: var(--ink); }
 .lang-opt.active { color: var(--ink); font-weight: 600; }
 .lang-opt.active::after { content: "\2713"; color: var(--accent-ink); }
+
+/* brand mark (independent logos) — svg constellation or squircle image */
+.nav-brand-mark { display: grid; place-items: center; }
+.nav-brand-mark svg, .launch-icon svg { width: 100%; height: 100%; display: block; }
+.brand-img { width: 100%; height: 100%; display: block; }
+.brand-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* app launcher (9-square toolbox) */
+.launch { position: relative; }
+.launch-btn {
+  display: grid; place-items: center; width: 42px; height: 42px; padding: 0;
+  background: transparent; border: 1px solid var(--line-2); border-radius: var(--r-sm);
+  color: var(--ink-2); transition: all .3s var(--ease);
+}
+.launch-btn:hover { border-color: var(--ink); color: var(--ink); background: var(--card); }
+.launch-btn svg { width: 20px; height: 20px; }
+.launch-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); width: 264px;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
+  box-shadow: var(--sh); padding: 14px 10px; opacity: 0; visibility: hidden;
+  transform: translateY(-6px); transition: all .25s var(--ease); z-index: 90;
+}
+.launch.open .launch-menu { opacity: 1; visibility: visible; transform: none; }
+.launch-head { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); padding: 0 4px 10px; }
+.launch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.launch-app {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 12px 4px; border-radius: var(--r-sm); color: inherit; text-align: center;
+  transition: background .2s var(--ease);
+}
+.launch-app:hover { background: var(--paper-2); }
+.launch-icon { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; }
+.launch-name { font-weight: 500; font-size: .76rem; line-height: 1.25; }
 
 /* ============================================================= SHARED FOOT */
 .foot { border-top: 1px solid var(--line); margin-top: 90px; background: var(--paper); }
@@ -210,8 +242,8 @@ h1, h2, h3, h4 { font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; m
 }
 a.app-card:hover { transform: translateY(-4px); box-shadow: var(--sh); border-color: var(--line-2); }
 .app-icon {
-  width: 64px; height: 64px; clip-path: url(#squircle);
-  display: grid; place-items: center; background: var(--paper-2); align-self: start;
+  width: 64px; height: 64px;
+  display: grid; place-items: center; align-self: start;
 }
 .app-icon-img { width: 60%; height: 60%; object-fit: contain; }
 .app-icon-glyph { font-size: 1.5rem; color: var(--accent-ink); }
