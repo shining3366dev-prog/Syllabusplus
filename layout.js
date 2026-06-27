@@ -163,7 +163,11 @@ function translatePage() {
   const lang = getLangFromURL();
   document.querySelectorAll('[data-i18n]').forEach((el) => {
     const set = window.I18N_DATA[el.getAttribute('data-i18n')];
-    if (set && set[lang]) el.textContent = set[lang];
+    if (!set || !set[lang]) return;
+    // Strings with markup (bold, icons) need innerHTML so <strong>/<i> survive;
+    // plain strings stay on textContent. Source is our own trusted CSV.
+    if (set[lang].indexOf('<') !== -1) el.innerHTML = set[lang];
+    else el.textContent = set[lang];
   });
 }
 window.translatePage = translatePage;

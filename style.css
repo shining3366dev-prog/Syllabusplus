@@ -398,8 +398,11 @@ a.app-card:hover .app-cta i { transform: translateX(4px); }
 .wiki-section { margin-bottom: 32px; }
 .wiki-section h2 { font-family: var(--serif); font-size: 1.5rem; margin-bottom: 12px; }
 .wiki-section p { color: #38352f; margin: 0 0 14px; }
-.wiki-image-container { margin: 18px 0; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
-.wiki-article-img { width: 100%; }
+.wiki-image-container { margin: 18px 0 0; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.wiki-article-img { width: 100%; display: block; }
+.wiki-image-credit { font-size: .76rem; color: var(--ink-3); margin: 6px 2px 18px; text-align: right; }
+.wiki-image-credit a { color: var(--ink-2); border-bottom: 1px solid var(--line-2); }
+.wiki-image-credit a:hover { color: var(--ink); }
 
 .math-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; margin: 16px 0; text-align: center; overflow-x: auto; }
 .example-box { background: var(--wash); border: 1px solid #e6dcc8; border-left: 3px solid var(--accent); border-radius: var(--r-sm); padding: 16px 18px; margin: 16px 0; color: #4a4438; font-size: .95rem; }

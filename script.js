@@ -67,6 +67,20 @@ function loadSubjects() {
         });
 }
 
+// Fetch an .svg thumbnail and inline it into the card banner, so it renders
+// crisply at any size and its <text> can use the page's loaded fonts (Fraunces).
+// Any failure leaves the solid hue placeholder in place — no broken-image icon.
+function injectThumbnail(el, url) {
+    if (!el || !url) return;
+    fetch(url)
+        .then(res => res.ok ? res.text() : Promise.reject(res.status))
+        .then(txt => {
+            if (txt.indexOf('<svg') === -1) return; // 404/HTML, not an SVG
+            el.innerHTML = txt;
+        })
+        .catch(() => { /* keep the background-color fallback */ });
+}
+
 // 1. Unified Filter Function
 window.filterYear = function(year) {
     // Save selection
@@ -151,9 +165,13 @@ function renderGrid(selectedYear) {
             yearBadgeHTML = `<p style="color:#27ae60; font-weight:700; font-size:0.8rem; margin-bottom:5px;">🎓 ${subject.years.join(', ')}</p>`;
         }
 
-        // Background Logic: Image OR Color
-        let backgroundStyle = '';
-        if (subject.image) {
+        // Background: inline SVG thumbnail, raster image, or solid colour.
+        const isSvg = subject.image && /\.svg(?:[?#]|$)/i.test(subject.image);
+        let backgroundStyle;
+        if (isSvg) {
+            // Show the subject hue instantly; the real SVG is injected after mount.
+            backgroundStyle = `background-color: ${subject.bgColor || 'var(--paper-2)'};`;
+        } else if (subject.image) {
             backgroundStyle = `background-image: url('${subject.image}');`;
         } else {
             backgroundStyle = `background-color: ${subject.bgColor || '#3498db'};`;
@@ -171,6 +189,8 @@ function renderGrid(selectedYear) {
             </div>
         `;
         grid.appendChild(card);
+
+        if (isSvg) injectThumbnail(card.querySelector('.card-image'), subject.image);
     });
 }
 

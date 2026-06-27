@@ -596,13 +596,24 @@ function renderSection(s, index, lang) {
     let html = `<section class="wiki-section">`;
     if (heading) html += `<h2>${heading}</h2>`;
 
-    // Render the image if it exists in the JSON
+    // Render the image if it exists, with an optional source credit.
+    // Convention: the credit is OPTIONAL for our own images, but REQUIRED for any
+    // image that isn't ours — set "imageSource" (and optionally "imageSourceUrl").
     if (image) {
         const imgSrc = image.startsWith('http') ? image : `${BASE_URL}/articles_data/${image}`;
+        const srcLabel = getField('imageSource');
+        const srcUrl = s.imageSourceUrl || '';
+        let credit = '';
+        if (srcLabel) {
+            const who = srcUrl
+                ? `<a href="${srcUrl}" target="_blank" rel="noopener">${srcLabel}</a>`
+                : srcLabel;
+            credit = `<p class="wiki-image-credit">${getUIString('ui_source', lang)}: ${who}</p>`;
+        }
         html += `
             <div class="wiki-image-container">
                 <img src="${imgSrc}" alt="${heading || 'Article Image'}" class="wiki-article-img" loading="lazy">
-            </div>`;
+            </div>${credit}`;
     }
 
     switch (s.type) {
