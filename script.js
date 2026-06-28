@@ -34,11 +34,12 @@ function loadSubjects() {
 
                 // If CSV has a filename (e.g. "math.jpg"), combine it with base URL
                 if (imageName && imageName.length > 0) {
-                    // Check if it's already a full link (http), otherwise add base path
                     if (imageName.startsWith('http')) {
-                        finalImageUrl = imageName;
+                        finalImageUrl = imageName;            // already a full link
+                    } else if (imageName.includes('/')) {
+                        finalImageUrl = NONAME.dataUrl(imageName); // path relative to the DB root (e.g. "claude generated images/english.svg")
                     } else {
-                        finalImageUrl = IMAGES_BASE_URL + imageName;
+                        finalImageUrl = IMAGES_BASE_URL + imageName; // bare filename → images/
                     }
                 }
                 // -----------------------------

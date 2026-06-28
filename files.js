@@ -101,6 +101,15 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
             if (imgElement && imageStr) {
                 imgElement.src = imageStr.startsWith('http') ? imageStr : `${BASE_URL}/articles_data/${imageStr}`;
             }
+
+            // Re-localize an inline diagram's labels (no re-fetch needed)
+            const diagramEl = section.querySelector('.wiki-diagram');
+            if (diagramEl && sectionData.labels) {
+                diagramEl.querySelectorAll('[data-label]').forEach(t => {
+                    const set = sectionData.labels[t.getAttribute('data-label')];
+                    if (set) t.textContent = set[langCode] || set.en || t.textContent;
+                });
+            }
             
             switch(sectionData.type) {
                 case 'intro':
@@ -580,10 +589,36 @@ async function renderWiki(url, originalFilename) {
         container.querySelectorAll('.quiz-window').forEach(el => {
             window.renderQuizQuestion(el.id);
         });
-        
-    } catch (err) { 
+
+        container.querySelectorAll('.wiki-diagram').forEach(el => {
+            renderDiagram(el.id, currentLang);
+        });
+
+    } catch (err) {
         container.innerHTML = `<div class="error-msg">⚠️ ${err.message}</div>`; 
     }
+}
+
+// Fetch an article diagram (.svg), inline it so its <text> uses the page font and
+// can be localized, then fill each [data-label] from the section's labels map.
+async function renderDiagram(elId, lang) {
+    const el = document.getElementById(elId);
+    const meta = window.diagrams && window.diagrams[elId];
+    if (!el || !meta) return;
+    try {
+        // meta.file may be a bare name (→ articles_data/) or a DB-root-relative path
+        // (e.g. "claude generated images/subduction.svg").
+        const path = meta.file.includes('/') ? meta.file : `articles_data/${meta.file}`;
+        const res = await fetch(`${BASE_URL}/${path}`);
+        if (!res.ok) return;
+        const svg = await res.text();
+        if (svg.indexOf('<svg') === -1) return;
+        el.innerHTML = svg;
+        el.querySelectorAll('[data-label]').forEach(t => {
+            const set = meta.labels[t.getAttribute('data-label')];
+            if (set) t.textContent = set[lang] || set.en || t.textContent;
+        });
+    } catch (e) { /* leave the diagram blank on failure */ }
 }
 
 // --- SECTION RENDERER ---
@@ -614,6 +649,15 @@ function renderSection(s, index, lang) {
             <div class="wiki-image-container">
                 <img src="${imgSrc}" alt="${heading || 'Article Image'}" class="wiki-article-img" loading="lazy">
             </div>${credit}`;
+    }
+
+    // Inline, translatable SVG diagram. Labels come from the section's `labels`
+    // map ({ key: { en, fr, de } }) and are filled per language after inlining.
+    if (s.diagram) {
+        const dId = `diagram-${index}`;
+        window.diagrams = window.diagrams || {};
+        window.diagrams[dId] = { file: s.diagram, labels: s.labels || {} };
+        html += `<div class="wiki-image-container"><div id="${dId}" class="wiki-diagram"></div></div>`;
     }
 
     switch (s.type) {
