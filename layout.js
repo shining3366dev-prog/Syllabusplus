@@ -230,6 +230,55 @@ function renderChrome() {
   if (typeof window.applyAuthUI === 'function') window.applyAuthUI();
 }
 
+/* ----- Google AdSense side rails (config-driven, desktop-only) ----- */
+function loadAds() {
+  const ads = CFG.ads;
+  if (!ads || !ads.enabled || !ads.client) return;
+
+  // 1. Loader script (once)
+  if (!document.getElementById('adsbygoogle-js')) {
+    const s = document.createElement('script');
+    s.id = 'adsbygoogle-js';
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + ads.client;
+    document.head.appendChild(s);
+  }
+
+  // 2. Scoped styles for the rails (once) — fixed in the page gutters, only on
+  //    screens wide enough that they can't overlap the centred content.
+  if (!document.getElementById('ad-rail-style')) {
+    const st = document.createElement('style');
+    st.id = 'ad-rail-style';
+    st.textContent =
+      '.ad-rail{position:fixed;top:90px;width:160px;z-index:50;display:none}' +
+      '.ad-rail .ad-tag{display:block;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3,#a09b91);margin-bottom:6px;text-align:center}' +
+      '.ad-rail ins{display:block;width:160px;height:600px}' +
+      '.ad-rail.ad-left{left:calc((100vw - var(--maxw, 1120px)) / 2 - 184px)}' +
+      '.ad-rail.ad-right{right:calc((100vw - var(--maxw, 1120px)) / 2 - 184px)}' +
+      '@media (min-width:1550px){.ad-rail{display:block}}';
+    document.head.appendChild(st);
+  }
+
+  // 3. The two rails (once)
+  if (!document.getElementById('ad-rail-left')) {
+    [['left', ads.slotLeft], ['right', ads.slotRight]].forEach(function (pair) {
+      const side = pair[0], slot = pair[1];
+      if (!slot) return;
+      const aside = document.createElement('aside');
+      aside.className = 'ad-rail ad-' + side;
+      aside.id = 'ad-rail-' + side;
+      aside.setAttribute('aria-hidden', 'true');
+      aside.innerHTML =
+        '<span class="ad-tag">Advertisement</span>' +
+        '<ins class="adsbygoogle" style="display:block;width:160px;height:600px" data-ad-client="' +
+        ads.client + '" data-ad-slot="' + slot + '"></ins>';
+      document.body.appendChild(aside);
+      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+    });
+  }
+}
+
 function loadLayout() {
   if (!document.getElementById('squircle')) {
     document.body.insertAdjacentHTML('afterbegin', SQUIRCLE_DEF);
@@ -246,6 +295,7 @@ function loadLayout() {
   }
   renderChrome();
   initLocalisation();
+  loadAds();
 }
 
 /* back-compat helpers some scripts still call */

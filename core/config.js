@@ -57,6 +57,20 @@
       analytics: true,  // Firebase analytics
     },
 
+    // --- Google AdSense (left/right side rails, injected by layout.js) ---
+    // `client` = "ca-pub-" + your AdSense publisher number. Create "Display ad"
+    // units in AdSense and paste their numeric slot IDs below (left/right may reuse
+    // the same slot). Flip `enabled` to false to remove every ad site-wide. The
+    // side rails only appear on screens wide enough for the page gutters (~1500px+).
+    // NOTE: ads stay blank until the domain is approved in your AdSense account,
+    // and there must be an /ads.txt at the site root with this publisher ID.
+    ads: {
+      enabled: true,
+      client: 'ca-pub-3541004256525869',
+      slotLeft: '7450286002',
+      slotRight: '7450286002',
+    },
+
     // --- Navbar links per context ---
     // Two identities: the ecosystem (noname) and the Syllabus+ product.
     // No text links — you switch apps via the launcher (9-square icon).
