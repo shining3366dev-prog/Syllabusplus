@@ -42,6 +42,7 @@
       help: 'help.html',
       contact: 'contact.html',
       feedback: 'feedback.html',
+      privacy: 'privacy.html',
     },
 
     // --- Localisation ---
@@ -111,6 +112,7 @@
           { i18n: 'footer_help', en: 'Help Center', route: 'help' },
           { i18n: 'footer_contact', en: 'Contact Us', route: 'contact' },
           { i18n: 'footer_feedback', en: 'Feedback', route: 'feedback' },
+          { i18n: 'footer_privacy', en: 'Privacy', route: 'privacy' },
         ],
       },
     ],
