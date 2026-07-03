@@ -34,6 +34,16 @@ const MARK_NONAME =
     <g fill="#faf9f7"><circle cx="22" cy="22" r="3"/><circle cx="13" cy="14" r="2"/><circle cx="31" cy="15" r="2"/><circle cx="17" cy="31" r="2"/></g>
   </svg>`;
 
+/* Read mark: ink squircle + open book (same treatment as the noname mark) */
+const MARK_READ =
+  `<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M22,2 C10,2 5,2.5 3.7,3.7 C2.5,5 2,10 2,22 C2,34 2.5,39 3.7,40.3 C5,41.5 10,42 22,42 C34,42 39,41.5 40.3,40.3 C41.5,39 42,34 42,22 C42,10 41.5,5 40.3,3.7 C39,2.5 34,2 22,2 Z" fill="#161513"/>
+    <g stroke="#faf9f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M22,15 C19,12.7 15,12.7 12,14.2 L12,29 C15,27.5 19,27.5 22,29.8 C25,27.5 29,27.5 32,29 L32,14.2 C29,12.7 25,12.7 22,15 Z"/>
+      <path d="M22,15 L22,29.8"/>
+    </g>
+  </svg>`;
+
 /* 9-square toolbox (squircle squares = Apple curvature) */
 const WAFFLE_SVG =
   `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -44,6 +54,7 @@ const WAFFLE_SVG =
 
 function markHTML(type) {
   if (type === 'sbplus') return `<span class="brand-img"><img src="images/favicon.png" alt=""></span>`;
+  if (type === 'read') return MARK_READ;
   return MARK_NONAME;
 }
 
@@ -182,12 +193,15 @@ window.changeLanguage = function (langCode) {
 
   if (typeof window.updateArticleLanguage === 'function') {
     const active = document.querySelector('.file-item.active');
-    const link = active && active.getAttribute('data-link');
+    const viewer = document.getElementById('article-viewer');
+    const link = (active && active.getAttribute('data-link'))
+      || (viewer && viewer.getAttribute('data-current-file')); // reader.html has no sidebar items
     if (link) window.updateArticleLanguage(link, langCode);
   }
   if (typeof loadFiles === 'function') loadFiles(true);
   if (typeof renderGrid === 'function') renderGrid(localStorage.getItem('selectedYear') || 'ALL');
   if (typeof window.renderBranches === 'function') window.renderBranches();
+  if (typeof window.renderBooks === 'function') window.renderBooks();
 };
 
 /* ----- mount ----- */

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Cookiebot CMP — first script in <head>; auto-blocks cookies until consent -->
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="feea23ea-9c25-4e45-8655-2b4a5e7448c2" data-blockingmode="auto" type="text/javascript"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Read — chapter</title>
+    <meta name="description" content="Read a chapter: original passages, plain-English translation, vocabulary and a quiz.">
+    <meta name="theme-color" content="#faf9f7">
+
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- KaTeX for math rendering (the article engine expects it) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+    <div class="main-content">
+        <div class="reader-shell container">
+            <div class="reader-topbar">
+                <a class="btn-back" id="back-to-library" href="read.html">
+                    <i class="fa-solid fa-chevron-left"></i> <span data-i18n="read_back">Back to library</span>
+                </a>
+                <span class="reader-book" id="reader-book-title"></span>
+            </div>
+            <div class="reader-wrapper">
+                <div id="article-viewer" class="article-viewer">
+                    <p style="padding:40px;color:var(--ink-3)" data-i18n="page_loading">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.NONAME_PAGE = { context: 'read', active: 'read' };
+        // Point the shared article engine (files.js) at the book backend.
+        window.READER_CONFIG = { dataDir: 'book-chapters', route: 'reader', backRoute: 'read' };
+    </script>
+
+    <!-- Ecosystem core: must load before app scripts -->
+    <script src="./core/config.js"></script>
+    <script src="./layout.js"></script>
+    <script src="./files.js"></script>
+    <script src="./reader.js"></script>
+    <script type="module" src="./auth.js"></script>
+</body>
+</html>

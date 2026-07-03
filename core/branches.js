@@ -36,6 +36,16 @@
       status: 'live',
       tags: ['education', 'study', 'school'],
     },
+    {
+      id: 'read',
+      name: 'Read',
+      tagline: 'Books, one chapter at a time',
+      description: 'A small library of books and topics, read chapter by chapter with translations, vocab, and quizzes.',
+      icon: 'fa-solid fa-book-open',
+      href: (NS.config && NS.config.routes.read) || 'read.html',
+      status: 'live',
+      tags: ['reading', 'library'],
+    },
   ];
 
   NS.branches = branches;

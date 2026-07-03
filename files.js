@@ -39,6 +39,18 @@ function getSubjectFromURL() {
     return new URLSearchParams(window.location.search).get('subject');
 }
 
+// --- READER MODE (Read branch) ---
+// reader.html sets window.READER_CONFIG = { dataDir, route, backRoute } BEFORE this
+// script loads, pointing the same article engine at book-chapters/ and the reader
+// route instead of articles_data/ + files.html. Absent config = classic behaviour.
+function readerCfg() {
+    return window.READER_CONFIG || null;
+}
+function articleDataDir() {
+    const rc = readerCfg();
+    return (rc && rc.dataDir) || 'articles_data';
+}
+
 function getFileFromURL() {
     return new URLSearchParams(window.location.search).get('file');
 }
@@ -67,7 +79,7 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
     const scrollPos = container.scrollTop;
     
     try {
-        const res = await fetch(`${BASE_URL}/articles_data/${fileLink}`);
+        const res = await fetch(`${BASE_URL}/${articleDataDir()}/${fileLink}`);
         if (!res.ok) {
             console.error("Failed to fetch article:", res.status);
             return;
@@ -136,6 +148,31 @@ window.updateArticleLanguage = async function(fileLink, langCode) {
                         exampleBox.innerHTML = `<strong>${getUIString('ui_example', langCode)}:</strong> ${parseInlineMath(exampleContent)}`;
                     }
                     break;
+
+                case 'quote': {
+                    const quoteBlock = section.querySelector('.quote-block');
+                    if (quoteBlock) {
+                        const cite = getField('cite');
+                        quoteBlock.innerHTML = parseInlineMath(getField('content')) + (cite ? `<cite>${cite}</cite>` : '');
+                    }
+                    break;
+                }
+
+                case 'translation': {
+                    const transBlock = section.querySelector('.translation-block');
+                    if (transBlock) {
+                        transBlock.innerHTML = `<span class="block-tag">${getUIString('ui_translation', langCode)}</span><p>${parseInlineMath(getField('content'))}</p>`;
+                    }
+                    break;
+                }
+
+                case 'vocabulary': {
+                    const vocabBlock = section.querySelector('.vocab-block');
+                    if (vocabBlock) {
+                        vocabBlock.innerHTML = `<span class="block-tag">${getUIString('ui_vocabulary', langCode)}</span>${vocabHTML(sectionData, langCode)}`;
+                    }
+                    break;
+                }
                     
                 case 'scratch':
                     const scratchTitle = section.querySelector('.scratch-sidebar h3');
@@ -489,12 +526,15 @@ window.previewFile = (url, element) => {
     const currentSubject = getSubjectFromURL();
     const currentLang = getLangFromURL();
     const fileName = url.split('/').pop();
-    const newUrl = NONAME.url('files', { subject: currentSubject, lang: currentLang, file: fileName });
+    const rc = readerCfg();
+    const newUrl = rc
+        ? NONAME.url(rc.route || 'reader', { book: new URLSearchParams(window.location.search).get('book'), lang: currentLang, file: fileName })
+        : NONAME.url('files', { subject: currentSubject, lang: currentLang, file: fileName });
     window.history.pushState({ file: url }, '', newUrl);
 
     if (url.endsWith('.json')) {
         if (views.wiki) views.wiki.classList.remove('hidden');
-        renderWiki(`${BASE_URL}/articles_data/${url}`, url);
+        renderWiki(`${BASE_URL}/${articleDataDir()}/${url}`, url);
     } else {
         if (views.pdf) {
             views.pdf.classList.remove('hidden');
@@ -510,6 +550,12 @@ window.closePreview = () => {
 };
 
 window.backToSubjects = () => {
+    const rc = readerCfg();
+    if (rc) {
+        // Reader mode: back always means back to the Read library.
+        window.location.href = NONAME.url(rc.backRoute || 'read', { lang: getLangFromURL() });
+        return;
+    }
     if (isMobile()) {
         window.closePreview();
     } else {
@@ -621,6 +667,17 @@ async function renderDiagram(elId, lang) {
     } catch (e) { /* leave the diagram blank on failure */ }
 }
 
+// Vocabulary list markup (term/definition pairs, localizable) — used by
+// renderSection and rebuilt by updateArticleLanguage on language switch.
+function vocabHTML(s, lang) {
+    const items = (s.terms || []).map(t => {
+        const term = t[`term_${lang}`] || t.term || '';
+        const def = t[`definition_${lang}`] || t.definition || '';
+        return `<div class="vocab-item"><dt>${parseInlineMath(term)}</dt><dd>${parseInlineMath(def)}</dd></div>`;
+    }).join('');
+    return `<dl class="vocab-list">${items}</dl>`;
+}
+
 // --- SECTION RENDERER ---
 function renderSection(s, index, lang) {
     const getField = (base) => s[`${base}_${lang}`] || s[base] || '';
@@ -672,7 +729,22 @@ function renderSection(s, index, lang) {
             break;
             
         case 'example':
-            html += `<div class="example-box"><strong>${getUIString('ui_example', lang)}:</strong> ${content}</div>`; 
+            html += `<div class="example-box"><strong>${getUIString('ui_example', lang)}:</strong> ${content}</div>`;
+            break;
+
+        // --- Read branch section types (books) ---
+        case 'quote': {
+            const cite = getField('cite');
+            html += `<blockquote class="quote-block">${content}${cite ? `<cite>${cite}</cite>` : ''}</blockquote>`;
+            break;
+        }
+
+        case 'translation':
+            html += `<div class="translation-block"><span class="block-tag">${getUIString('ui_translation', lang)}</span><p>${content}</p></div>`;
+            break;
+
+        case 'vocabulary':
+            html += `<div class="vocab-block"><span class="block-tag">${getUIString('ui_vocabulary', lang)}</span>${vocabHTML(s, lang)}</div>`;
             break;
 
         case 'scratch':

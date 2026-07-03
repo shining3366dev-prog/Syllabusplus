@@ -43,6 +43,8 @@
       contact: 'contact.html',
       feedback: 'feedback.html',
       privacy: 'privacy.html',
+      read: 'read.html',        // Read hub: library grid + search
+      reader: 'reader.html',    // Read chapter viewer (article engine)
     },
 
     // --- Localisation ---
@@ -79,6 +81,7 @@
       hub:    [],
       page:   [],
       sbplus: [],
+      read:   [],
     },
 
     // --- Brand identity per context (independent logos, Google-style) ---
@@ -87,12 +90,14 @@
       hub:    { name: 'noname',    mark: 'noname', route: 'hub' },
       page:   { name: 'noname',    mark: 'noname', route: 'hub' },
       sbplus: { name: 'Syllabus+', mark: 'sbplus', route: 'sbplus' },
+      read:   { name: 'Read',      mark: 'read',   route: 'read' },
     },
 
     // --- App launcher (the 9-square toolbox) — every app, hub included ---
     launcher: [
       { name: 'noname',    tagline: 'Ecosystem home',  mark: 'noname', route: 'hub' },
       { name: 'Syllabus+', tagline: 'Study & quizzes',  mark: 'sbplus', route: 'sbplus' },
+      { name: 'Read',      tagline: 'Books & chapters', mark: 'read',   route: 'read' },
     ],
 
     // --- Footer (uniform on every page = ecosystem cohesion). About the whole
